@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>MySearch</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family:
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: #ffffff;
+            color: #202124;
+        }
+
+        /* =========================
+           HEADER
+           ========================= */
+
+        header {
+            padding: 70px 20px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 46px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: 28px;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 720px;
+            margin: auto;
+        }
+
+        .search-box {
+            display: flex;
+            width: 100%;
+        }
+
+        #searchInput {
+            flex: 1;
+
+            min-width: 0;
+
+            height: 52px;
+
+            padding:
+                0 18px;
+
+            border:
+                1px solid #c7c7c7;
+
+            border-right: none;
+
+            border-radius:
+                26px 0 0 26px;
+
+            font-size: 17px;
+
+            outline: none;
+        }
+
+        #searchInput:focus {
+            border-color: #4285f4;
+        }
+
+        #searchButton {
+            height: 52px;
+
+            padding:
+                0 25px;
+
+            border: none;
+
+            border-radius:
+                0 26px 26px 0;
+
+            background: #4285f4;
+
+            color: white;
+
+            font-size: 16px;
+
+            cursor: pointer;
+        }
+
+        #searchButton:hover {
+            background: #3367d6;
+        }
+
+        /* =========================
+           STATUS
+           ========================= */
+
+        #status {
+            max-width: 900px;
+
+            margin:
+                20px auto 10px;
+
+            padding:
+                0 20px;
+
+            color: #70757a;
+
+            font-size: 14px;
+        }
+
+        /* =========================
+           RESULTS
+           ========================= */
+
+        #results {
+            max-width: 900px;
+
+            margin:
+                0 auto;
+
+            padding:
+                10px 20px 50px;
+        }
+
+        .result {
+            margin-bottom: 27px;
+        }
+
+        .result-title {
+            margin: 0;
+
+            font-size: 20px;
+
+            font-weight: 500;
+        }
+
+        .result-title a {
+            color: #1a0dab;
+
+            text-decoration: none;
+        }
+
+        .result-title a:hover {
+            text-decoration: underline;
+        }
+
+        .result-url {
+            margin:
+                4px 0;
+
+            color: #188038;
+
+            font-size: 14px;
+
+            word-break: break-all;
+        }
+
+        .result-description {
+            color: #4d5156;
+
+            line-height: 1.5;
+
+            font-size: 15px;
+
+            max-width: 750px;
+        }
+
+        .empty {
+            padding:
+                50px 20px;
+
+            text-align: center;
+
+            color: #777;
+        }
+
+        /* =========================
+           MOBILE
+           ========================= */
+
+        @media (max-width: 600px) {
+
+            header {
+                padding-top: 35px;
+            }
+
+            .logo {
+                font-size: 38px;
+            }
+
+            .search-box {
+                display: flex;
+            }
+
+            #searchInput {
+                font-size: 16px;
+            }
+
+            #searchButton {
+                padding:
+                    0 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        MySearch
+    </div>
+
+    <div class="search-container">
+
+        <form
+            id="searchForm"
+            class="search-box"
+        >
+
+            <input
+                id="searchInput"
+                type="search"
+                placeholder="Das Web durchsuchen..."
+                autocomplete="off"
+                spellcheck="false"
+            >
+
+            <button
+                id="searchButton"
+                type="submit"
+            >
+                Suchen
+            </button>
+
+        </form>
+
+    </div>
+
+</header>
+
+
+<div id="status">
+    Suchindex wird geladen...
+</div>
+
+
+<main id="results"></main>
+
+
+<script>
+
+"use strict";
+
+
+/* ============================================================
+   KONFIGURATION
+   ============================================================ */
+
+const INDEX_FILE = "sites.json";
+
+const MAX_RESULTS = 100;
+
+
+/* ============================================================
+   GLOBALER INDEX
+   ============================================================ */
+
+let pages = [];
+
+let indexLoaded = false;
+
+
+/* ============================================================
+   HTML ESCAPING
+   ============================================================ */
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* ============================================================
+   TEXT NORMALISIEREN
+   ============================================================ */
+
+function normalizeText(value) {
+
+    return String(value ?? "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+}
+
+
+/* ============================================================
+   SUCHBEGRIFFE
+   ============================================================ */
+
+function tokenize(query) {
+
+    return normalizeText(query)
+        .split(/\s+/)
+        .filter(Boolean);
+
+}
+
+
+/* ============================================================
+   INDEX LADEN
+   ============================================================ */
+
+async function loadIndex() {
+
+    const status =
+        document.getElementById("status");
+
+    try {
+
+        status.textContent =
+            "Suchindex wird geladen...";
+
+
+        const response =
+            await fetch(
+                INDEX_FILE +
+                "?v=" +
+                Date.now()
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.pages ||
+            !Array.isArray(data.pages)) {
+
+            throw new Error(
+                "Ungültiges Indexformat."
+            );
+
+        }
+
+
+        pages = data.pages;
+
+        indexLoaded = true;
+
+
+        status.textContent =
+            pages.length +
+            " Seiten im Suchindex.";
+
+
+        console.log(
+            "Suchindex geladen:",
+            pages.length,
+            "Seiten"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Index konnte nicht geladen werden:",
+            error
+        );
+
+
+        status.textContent =
+            "Der Suchindex konnte nicht geladen werden.";
+
+
+        document.getElementById(
+            "results"
+        ).innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    sites.json konnte nicht geladen werden.
+                </strong>
+
+                <br><br>
+
+                Prüfe, ob die Datei im selben
+                Verzeichnis wie index.html liegt.
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* ============================================================
+   VORKOMMEN ZÄHLEN
+   ============================================================ */
+
+function countOccurrences(text, term) {
+
+    if (!term)
+        return 0;
+
+
+    let count = 0;
+
+    let position = 0;
+
+
+    while (true) {
+
+        const found =
+            text.indexOf(
+                term,
+                position
+            );
+
+
+        if (found === -1)
+            break;
+
+
+        count++;
+
+        position =
+            found + term.length;
+
+    }
+
+
+    return count;
+
+}
+
+
+/* ============================================================
+   RELEVANZ BERECHNEN
+   ============================================================ */
+
+function calculateScore(page, terms) {
+
+    const title =
+        normalizeText(page.title);
+
+    const description =
+        normalizeText(page.description);
+
+    const text =
+        normalizeText(page.text);
+
+    const url =
+        normalizeText(page.url);
+
+    const headings =
+        normalizeText(
+            Array.isArray(page.headings)
+                ? page.headings.join(" ")
+                : ""
+        );
+
+
+    let score = 0;
+
+
+    for (const term of terms) {
+
+        /*
+         * Exakter Titel-Treffer
+         */
+
+        if (title === term) {
+
+            score += 100;
+
+        }
+
+
+        /*
+         * Titel enthält Suchbegriff
+         */
+
+        else if (title.includes(term)) {
+
+            score += 40;
+
+        }
+
+
+        /*
+         * Überschrift
+         */
+
+        if (headings.includes(term)) {
+
+            score += 20;
+
+        }
+
+
+        /*
+         * URL
+         */
+
+        if (url.includes(term)) {
+
+            score += 10;
+
+        }
+
+
+        /*
+         * Beschreibung
+         */
+
+        if (description.includes(term)) {
+
+            score += 12;
+
+        }
+
+
+        /*
+         * Text
+         */
+
+        if (text.includes(term)) {
+
+            const occurrences =
+                countOccurrences(
+                    text,
+                    term
+                );
+
+
+            score += 3;
+
+
+            /*
+             * Häufigkeit begrenzen,
+             * damit eine Seite mit
+             * extrem viel Text nicht
+             * alles andere verdrängt.
+             */
+
+            score += Math.min(
+                occurrences * 0.25,
+                10
+            );
+
+        }
+
+    }
+
+
+    /*
+     * Bonus, wenn ALLE Suchbegriffe
+     * im Titel vorkommen.
+     */
+
+    const allInTitle =
+        terms.every(
+            term => title.includes(term)
+        );
+
+
+    if (allInTitle) {
+
+        score += 50;
+
+    }
+
+
+    /*
+     * Bonus, wenn alle Begriffe
+     * irgendwo vorkommen.
+     */
+
+    const allInPage =
+        terms.every(
+            term =>
+                title.includes(term) ||
+                headings.includes(term) ||
+                description.includes(term) ||
+                text.includes(term)
+        );
+
+
+    if (allInPage) {
+
+        score += 30;
+
+    }
+
+
+    return score;
+
+}
+
+
+/* ============================================================
+   SNIPPET
+   ============================================================ */
+
+function createSnippet(page, terms) {
+
+    const text =
+        String(page.text || "");
+
+    if (!text) {
+
+        return (
+            page.description ||
+            ""
+        );
+
+    }
+
+
+    const normalized =
+        normalizeText(text);
+
+
+    let position = -1;
+
+
+    /*
+     * Position des ersten Suchbegriffs
+     */
+
+    for (const term of terms) {
+
+        const p =
+            normalized.indexOf(term);
+
+
+        if (p !== -1) {
+
+            position = p;
+
+            break;
+
+        }
+
+    }
+
+
+    /*
+     * Kein Treffer im Text
+     */
+
+    if (position === -1) {
+
+        return text.substring(
+            0,
+            300
+        ) + (
+            text.length > 300
+                ? "…"
+                : ""
+        );
+
+    }
+
+
+    const snippetLength = 300;
+
+    const start =
+        Math.max(
+            0,
+            position - 100
+        );
+
+    const end =
+        Math.min(
+            text.length,
+            start + snippetLength
+        );
+
+
+    let snippet =
+        text.substring(
+            start,
+            end
+        );
+
+
+    if (start > 0) {
+
+        snippet =
+            "…" +
+            snippet;
+
+    }
+
+
+    if (end < text.length) {
+
+        snippet += "…";
+
+    }
+
+
+    return snippet;
+
+}
+
+
+/* ============================================================
+   SUCHEN
+   ============================================================ */
+
+function search(query) {
+
+    const terms =
+        tokenize(query);
+
+
+    if (!terms.length) {
+
+        return [];
+
+    }
+
+
+    const results = [];
+
+
+    for (const page of pages) {
+
+        const score =
+            calculateScore(
+                page,
+                terms
+            );
+
+
+        if (score > 0) {
+
+            results.push({
+
+                page: page,
+
+                score: score
+
+            });
+
+        }
+
+    }
+
+
+    results.sort(
+        (a, b) =>
+            b.score - a.score
+    );
+
+
+    return results.slice(
+        0,
+        MAX_RESULTS
+    );
+
+}
+
+
+/* ============================================================
+   ERGEBNISSE DARSTELLEN
+   ============================================================ */
+
+function displayResults(
+    results,
+    query
+) {
+
+    const container =
+        document.getElementById(
+            "results"
+        );
+
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    container.innerHTML = "";
+
+
+    if (!query.trim()) {
+
+        status.textContent =
+            pages.length +
+            " Seiten im Suchindex.";
+
+        return;
+
+    }
+
+
+    status.textContent =
+        results.length +
+        " Ergebnisse für „" +
+        query +
+        "“";
+
+
+    if (!results.length) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Keine Ergebnisse für
+                „${escapeHTML(query)}“
+                gefunden.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    const fragment =
+        document.createDocumentFragment();
+
+
+    for (const result of results) {
+
+        const page =
+            result.page;
+
+
+        const article =
+            document.createElement(
+                "article"
+            );
+
+
+        article.className =
+            "result";
+
+
+        const title =
+            page.title ||
+            page.url ||
+            "Unbekannte Seite";
+
+
+        const snippet =
+            createSnippet(
+                page,
+                tokenize(query)
+            );
+
+
+        const url =
+            String(
+                page.url || ""
+            );
+
+
+        article.innerHTML = `
+
+            <h2 class="result-title">
+
+                <a
+                    href="${escapeHTML(url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    ${escapeHTML(title)}
+                </a>
+
+            </h2>
+
+
+            <div class="result-url">
+
+                ${escapeHTML(url)}
+
+            </div>
+
+
+            <div class="result-description">
+
+                ${escapeHTML(
+                    snippet ||
+                    page.description ||
+                    "Keine Beschreibung verfügbar."
+                )}
+
+            </div>
+
+        `;
+
+
+        fragment.appendChild(
+            article
+        );
+
+    }
+
+
+    container.appendChild(
+        fragment
+    );
+
+}
+
+
+/* ============================================================
+   FORMULAR
+   ============================================================ */
+
+document
+    .getElementById("searchForm")
+    .addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            if (!indexLoaded) {
+
+                return;
+
+            }
+
+
+            const input =
+                document.getElementById(
+                    "searchInput"
+                );
+
+
+            const query =
+                input.value.trim();
+
+
+            const results =
+                search(query);
+
+
+            displayResults(
+                results,
+                query
+            );
+
+        }
+    );
+
+
+/* ============================================================
+   URL-SUCHE
+   ============================================================ */
+
+function searchFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const query =
+        params.get("q");
+
+
+    if (!query)
+        return;
+
+
+    const input =
+        document.getElementById(
+            "searchInput"
+        );
+
+
+    input.value = query;
+
+
+    if (indexLoaded) {
+
+        displayResults(
+            search(query),
+            query
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   START
+   ============================================================ */
+
+loadIndex().then(
+    searchFromURL
+);
+
+</script>
+
+</body>
+</html>
