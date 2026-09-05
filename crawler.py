@@ -26,7 +26,7 @@ MAX_PAGES_PER_RUN = 1000
 MAX_DEPTH = 5
 
 # Pause zwischen Requests
-REQUEST_DELAY = 0.5
+REQUEST_DELAY = 1.0
 
 # HTTP Timeout
 REQUEST_TIMEOUT = 20
