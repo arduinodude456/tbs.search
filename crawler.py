@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 # ============================================================
 
 START_URLS = [
-    "https://www.semrush.com/trending-websites/global/all"
+    "https://www.youtube.com/"
 ]
 
 # Maximale Anzahl NEUER/AKTUALISIERTER Seiten pro Lauf
