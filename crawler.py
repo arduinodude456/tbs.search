@@ -16,17 +16,17 @@ from bs4 import BeautifulSoup
 # ============================================================
 
 START_URLS = [
-    "https://example.com/"
+    "https://de.wikipedia.org/"
 ]
 
 # Maximale Anzahl NEUER/AKTUALISIERTER Seiten pro Lauf
-MAX_PAGES_PER_RUN = 50
+MAX_PAGES_PER_RUN = 1000
 
 # Maximale Linktiefe
-MAX_DEPTH = 3
+MAX_DEPTH = 5
 
 # Pause zwischen Requests
-REQUEST_DELAY = 1.0
+REQUEST_DELAY = 0.5
 
 # HTTP Timeout
 REQUEST_TIMEOUT = 20
