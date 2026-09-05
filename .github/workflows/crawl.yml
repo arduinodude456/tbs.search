@@ -2,7 +2,7 @@ name: Update search index
 
 on:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 */6 * * *"
 
   workflow_dispatch:
 
@@ -10,15 +10,21 @@ on:
     paths:
       - "crawler.py"
       - "requirements.txt"
+      - ".github/workflows/crawl.yml"
 
 permissions:
   contents: write
+
+concurrency:
+  group: search-index
+  cancel-in-progress: false
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -38,7 +44,7 @@ jobs:
         run: |
           python crawler.py
 
-      - name: Commit and push index
+      - name: Commit index
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -52,11 +58,11 @@ jobs:
 
           git commit -m "Update search index"
 
-          # Remote-Änderungen holen
+      - name: Rebase onto latest main
+        run: |
           git fetch origin main
-
-          # Eigenen Commit auf den aktuellen Remote-Stand setzen
           git rebase origin/main
 
-          # Danach pushen
+      - name: Push index
+        run: |
           git push origin HEAD:main
