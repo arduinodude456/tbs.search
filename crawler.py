@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 # ============================================================
 
 START_URLS = [
-    "https://de.wikipedia.org/"
+    "https://www.wdr.de/"
 ]
 
 # Maximale Anzahl NEUER/AKTUALISIERTER Seiten pro Lauf
