@@ -312,144 +312,39 @@ WIBY_SURPRISE_URL = "https://wiby.me/surprise/"
 
 
 def get_wiby_surprise():
-
     try:
-
         response = session.get(
             WIBY_SURPRISE_URL,
+            headers={"User-Agent": USER_AGENT},
             timeout=REQUEST_TIMEOUT,
-            allow_redirects=True
+            allow_redirects=True,
         )
 
-        print(
-            "Wiby HTTP:",
-            response.status_code
-        )
+        print(f"Wiby Surprise HTTP: {response.status_code}")
+        print(f"Wiby Ziel: {response.url}")
 
-        response.raise_for_status()
+        if response.status_code != 200:
+            print("Wiby Surprise konnte nicht abgerufen werden.")
+            return None
 
+        final_url = response.url
 
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
+        if not final_url or final_url.rstrip("/") == WIBY_SURPRISE_URL.rstrip("/"):
+            print("Wiby Surprise hat keine Zielseite geliefert.")
+            return None
 
+        parsed = urlparse(final_url)
 
-        # ----------------------------------------------------
-        # Alle Links untersuchen
-        # ----------------------------------------------------
+        if parsed.scheme not in ("http", "https"):
+            print("Wiby: Ungültiges URL-Schema.")
+            return None
 
-        candidates = []
+        print(f"Wiby Surprise Seed: {final_url}")
+        return final_url
 
-        for anchor in soup.find_all(
-            "a",
-            href=True
-        ):
-
-            href = anchor.get(
-                "href",
-                ""
-            ).strip()
-
-            text = anchor.get_text(
-                " ",
-                strip=True
-            ).lower()
-
-
-            if not href:
-                continue
-
-
-            absolute = normalize_url(
-                urljoin(
-                    response.url,
-                    href
-                )
-            )
-
-
-            if not absolute:
-                continue
-
-
-            hostname = urlparse(
-                absolute
-            ).hostname
-
-
-            if not hostname:
-                continue
-
-
-            # Wiby selbst ignorieren
-            if hostname.lower() in (
-                "wiby.me",
-                "www.wiby.me"
-            ):
-                continue
-
-
-            # Nur HTTP(S)
-            if not absolute.startswith(
-                ("http://", "https://")
-            ):
-                continue
-
-
-            candidates.append(
-                absolute
-            )
-
-
-        # ----------------------------------------------------
-        # Doppelte entfernen
-        # ----------------------------------------------------
-
-        candidates = list(
-            dict.fromkeys(
-                candidates
-            )
-        )
-
-
-        # ----------------------------------------------------
-        # Ergebnis
-        # ----------------------------------------------------
-
-        if candidates:
-
-            seed = random.choice(
-                candidates
-            )
-
-            print(
-                "Wiby Surprise Seed:",
-                seed
-            )
-
-            return seed
-
-
-        print(
-            "Wiby: Keine externe URL gefunden."
-        )
-
+    except requests.RequestException as e:
+        print(f"Wiby Fehler: {e}")
         return None
-
-
-    except Exception as error:
-
-        print(
-            "Wiby Surprise Fehler:"
-        )
-
-        print(
-            repr(error)
-        )
-
-        return None
-
 
 def get_wiby_seeds():
 
