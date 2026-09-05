@@ -23,7 +23,7 @@ START_URLS = [
 MAX_PAGES_PER_RUN = 1000
 
 # Maximale Linktiefe
-MAX_DEPTH = 5
+MAX_DEPTH = 3
 
 # Pause zwischen Requests
 REQUEST_DELAY = 1.0
@@ -36,8 +36,9 @@ INDEX_FILE = "sites.json"
 
 # User-Agent
 USER_AGENT = (
-    "TBSSearchBot/1.0 "
-    "(https://github.com/arduinodude456/tbs.search)"
+    "Mozilla/5.0 "
+    "(compatible; TBSSearchBot/1.0; "
+    "+https://github.com/arduinodude456/tbs.search)"
 )
 
 
