@@ -30,7 +30,7 @@ WIBY_SEEDS_PER_RUN = 5
 MAX_PAGES_PER_RUN = 1000
 
 # Maximale Linktiefe
-MAX_DEPTH = 4
+MAX_DEPTH = 6
 
 # Pause zwischen Requests
 REQUEST_DELAY = 1.0
