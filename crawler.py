@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 # =========================
 
 START_URLS = [
-    "https://example.com/"
+    "https://de.wikipedia.org/"
 ]
 
 MAX_PAGES = 100
