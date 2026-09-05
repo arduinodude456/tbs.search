@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 # ============================================================
 
 START_URLS = [
-    "https://www.youtube.com/"
+    "https://www.martinkaessler.com/50-meistgeschaute-youtube-videos/"
 ]
 
 # Maximale Anzahl NEUER/AKTUALISIERTER Seiten pro Lauf
