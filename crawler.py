@@ -308,13 +308,22 @@ def can_fetch(url):
 # WIBY SURPRISE
 # ============================================================
 
+WIBY_SURPRISE_URL = "https://wiby.me/surprise/"
+
+
 def get_wiby_surprise():
 
     try:
 
         response = session.get(
             WIBY_SURPRISE_URL,
-            timeout=REQUEST_TIMEOUT
+            timeout=REQUEST_TIMEOUT,
+            allow_redirects=True
+        )
+
+        print(
+            "Wiby HTTP:",
+            response.status_code
         )
 
         response.raise_for_status()
@@ -327,125 +336,104 @@ def get_wiby_surprise():
 
 
         # ----------------------------------------------------
-        # Suche nach dem Surprise-Link
+        # Alle Links untersuchen
         # ----------------------------------------------------
 
         candidates = []
-
 
         for anchor in soup.find_all(
             "a",
             href=True
         ):
+
+            href = anchor.get(
+                "href",
+                ""
+            ).strip()
 
             text = anchor.get_text(
                 " ",
                 strip=True
             ).lower()
 
-            href = anchor.get(
-                "href"
-            )
 
+            if not href:
+                continue
 
-            # Wiby bezeichnet den Link als
-            # "surprise me"
-            if (
-                "surprise" in text
-                or
-                "surprise" in href.lower()
-            ):
-
-                absolute = urljoin(
-                    WIBY_SURPRISE_URL,
-                    href
-                )
-
-                absolute = normalize_url(
-                    absolute
-                )
-
-                if absolute:
-
-                    candidates.append(
-                        absolute
-                    )
-
-
-        # ----------------------------------------------------
-        # Wenn die Seite einen direkten
-        # externen Surprise-Link enthält
-        # ----------------------------------------------------
-
-        external = [
-            url
-            for url in candidates
-            if urlparse(url).hostname
-            and urlparse(url).hostname
-            not in (
-                "wiby.me",
-                "www.wiby.me"
-            )
-        ]
-
-
-        if external:
-
-            return random.choice(
-                external
-            )
-
-
-        # ----------------------------------------------------
-        # Fallback:
-        # Suche nach externen Links
-        # ----------------------------------------------------
-
-        external_links = []
-
-        for anchor in soup.find_all(
-            "a",
-            href=True
-        ):
-
-            href = anchor.get(
-                "href"
-            )
 
             absolute = normalize_url(
                 urljoin(
-                    WIBY_SURPRISE_URL,
+                    response.url,
                     href
                 )
             )
 
+
             if not absolute:
                 continue
+
 
             hostname = urlparse(
                 absolute
             ).hostname
 
+
             if not hostname:
                 continue
 
-            if hostname in (
+
+            # Wiby selbst ignorieren
+            if hostname.lower() in (
                 "wiby.me",
                 "www.wiby.me"
             ):
                 continue
 
-            external_links.append(
+
+            # Nur HTTP(S)
+            if not absolute.startswith(
+                ("http://", "https://")
+            ):
+                continue
+
+
+            candidates.append(
                 absolute
             )
 
 
-        if external_links:
+        # ----------------------------------------------------
+        # Doppelte entfernen
+        # ----------------------------------------------------
 
-            return random.choice(
-                external_links
+        candidates = list(
+            dict.fromkeys(
+                candidates
+            )
+        )
+
+
+        # ----------------------------------------------------
+        # Ergebnis
+        # ----------------------------------------------------
+
+        if candidates:
+
+            seed = random.choice(
+                candidates
             )
 
+            print(
+                "Wiby Surprise Seed:",
+                seed
+            )
+
+            return seed
+
+
+        print(
+            "Wiby: Keine externe URL gefunden."
+        )
 
         return None
 
@@ -453,10 +441,12 @@ def get_wiby_surprise():
     except Exception as error:
 
         print(
-            "Wiby konnte nicht abgefragt werden:"
+            "Wiby Surprise Fehler:"
         )
 
-        print(error)
+        print(
+            repr(error)
+        )
 
         return None
 
@@ -473,8 +463,9 @@ def get_wiby_seeds():
 
     attempts = 0
 
-    max_attempts = (
-        WIBY_SEEDS_PER_RUN * 3
+    max_attempts = max(
+        WIBY_SEEDS_PER_RUN * 3,
+        3
     )
 
 
@@ -482,12 +473,20 @@ def get_wiby_seeds():
         len(seeds)
         < WIBY_SEEDS_PER_RUN
         and
-        attempts < max_attempts
+        attempts
+        < max_attempts
     ):
 
         attempts += 1
 
+        print(
+            f"Wiby Versuch "
+            f"{attempts}/{max_attempts}"
+        )
+
+
         seed = get_wiby_surprise()
+
 
         if seed:
 
@@ -497,18 +496,21 @@ def get_wiby_seeds():
                     seed
                 )
 
-                print(
-                    "Wiby Seed:",
-                    seed
-                )
-
                 stats[
                     "wiby_seeds"
                 ] += 1
 
+
         time.sleep(
             REQUEST_DELAY
         )
+
+
+    print()
+    print(
+        "Wiby Seeds gefunden:",
+        len(seeds)
+    )
 
 
     return list(seeds)
