@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 # ============================================================
 
 START_URLS = [
-    "https://en.wikipedia.org/wiki/List_of_most-visited_websites"
+    "https://analytics.explodingtopics.com/website"
 ]
 
 # Maximale Anzahl NEUER/AKTUALISIERTER Seiten pro Lauf
