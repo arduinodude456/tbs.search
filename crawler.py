@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 
 # Zusätzliche feste Startseiten
 START_URLS = [
-    "https://www.ard.de/"
+    "https://wiby.me/search?q=./"
 ]
 
 # Wiby als Seed-Quelle
