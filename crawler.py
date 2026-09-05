@@ -37,8 +37,6 @@ INDEX_FILE = "sites.json"
 # User-Agent
 USER_AGENT = (
     "Mozilla/5.0 "
-    "(compatible; TBSSearchBot/1.0; "
-    "+https://github.com/arduinodude456/tbs.search)"
 )
 
 
