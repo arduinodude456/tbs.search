@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 
 # Zusätzliche feste Startseiten
 START_URLS = [
-    "https://https://dmoz.kodbel.com"
+    "https://dmoz.kodbel.com"
 ]
 
 # Wiby als Seed-Quelle
