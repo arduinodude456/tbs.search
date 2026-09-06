@@ -11,12 +11,13 @@
         box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
         margin: 0;
         padding: 0;
         min-height: 100%;
         font-family: Arial, Helvetica, sans-serif;
-        background: #ffffff;
+        background: #fff;
         color: #202124;
     }
 
@@ -24,9 +25,13 @@
         padding-bottom: 50px;
     }
 
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
     .header {
         width: 100%;
-        padding: 32px 20px 22px;
+        padding: 30px 20px 12px;
         text-align: center;
     }
 
@@ -35,8 +40,14 @@
         font-weight: 700;
         letter-spacing: -2px;
         color: #202124;
-        margin-bottom: 22px;
+        margin-bottom: 20px;
+        cursor: pointer;
+        user-select: none;
     }
+
+    /* =========================================================
+       SUCHFELD
+       ========================================================= */
 
     .search-container {
         width: min(720px, 94vw);
@@ -49,16 +60,18 @@
         height: 52px;
         border: 1px solid #dfe1e5;
         border-radius: 28px;
-        padding: 0 52px 0 20px;
+        padding: 0 55px 0 20px;
         font-size: 17px;
         outline: none;
-        box-shadow: 0 2px 7px rgba(0,0,0,0.08);
-        transition: box-shadow 0.15s, border-color 0.15s;
+        box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08);
+        transition:
+            box-shadow 0.15s,
+            border-color 0.15s;
     }
 
     .search-box:focus {
         border-color: #aaa;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
     }
 
     .search-button {
@@ -72,20 +85,64 @@
         background: #202124;
         color: white;
         cursor: pointer;
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .search-button:hover {
         background: #000;
     }
 
+    /* =========================================================
+       TABS
+       ========================================================= */
+
+    .tabs {
+        width: min(900px, 94vw);
+        margin: 15px auto 0;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .tab {
+        border: 0;
+        background: transparent;
+        color: #70757a;
+        font-size: 14px;
+        padding: 11px 20px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition:
+            color 0.15s,
+            border-color 0.15s;
+    }
+
+    .tab:hover {
+        color: #202124;
+    }
+
+    .tab.active {
+        color: #202124;
+        border-bottom-color: #202124;
+        font-weight: 600;
+    }
+
+    /* =========================================================
+       STATUS
+       ========================================================= */
+
     .status {
         width: min(900px, 94vw);
-        margin: 20px auto 8px;
+        margin: 18px auto 10px;
         color: #70757a;
         font-size: 13px;
         min-height: 18px;
     }
+
+    /* =========================================================
+       WEB-ERGEBNISSE
+       ========================================================= */
 
     .results {
         width: min(900px, 94vw);
@@ -94,7 +151,6 @@
 
     .result {
         margin: 0 0 24px;
-        padding: 0;
     }
 
     .result-title {
@@ -122,6 +178,152 @@
         font-size: 14px;
         line-height: 1.45;
     }
+
+    /* =========================================================
+       BILDER
+       ========================================================= */
+
+    .image-results {
+        width: min(1100px, 96vw);
+        margin: auto;
+        display: grid;
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(180px, 1fr)
+        );
+        gap: 14px;
+    }
+
+    .image-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+        cursor: pointer;
+        transition:
+            transform 0.15s,
+            box-shadow 0.15s;
+    }
+
+    .image-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+    }
+
+    .image-wrapper {
+        width: 100%;
+        height: 180px;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .image-info {
+        padding: 9px 10px 11px;
+    }
+
+    .image-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .image-source {
+        margin-top: 5px;
+        font-size: 11px;
+        color: #188038;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    /* =========================================================
+       IMAGE VIEWER
+       ========================================================= */
+
+    .image-viewer {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.88);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 25px;
+    }
+
+    .image-viewer.visible {
+        display: flex;
+    }
+
+    .viewer-content {
+        max-width: 95vw;
+        max-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .viewer-image {
+        max-width: 95vw;
+        max-height: 78vh;
+        object-fit: contain;
+        border-radius: 5px;
+    }
+
+    .viewer-caption {
+        margin-top: 12px;
+        max-width: 90vw;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .viewer-source {
+        margin-top: 6px;
+        color: #ccc;
+        font-size: 12px;
+        max-width: 90vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .viewer-close {
+        position: fixed;
+        top: 15px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        color: white;
+        font-size: 25px;
+        cursor: pointer;
+    }
+
+    .viewer-close:hover {
+        background: rgba(255,255,255,0.25);
+    }
+
+    /* =========================================================
+       ALLGEMEIN
+       ========================================================= */
 
     .empty {
         text-align: center;
@@ -170,8 +372,9 @@
     }
 
     @media (max-width: 600px) {
+
         .header {
-            padding-top: 22px;
+            padding-top: 20px;
         }
 
         .logo {
@@ -186,6 +389,20 @@
         .result-title {
             font-size: 18px;
         }
+
+        .image-results {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .image-wrapper {
+            height: 140px;
+        }
+
+        .image-info {
+            padding: 7px;
+        }
     }
 </style>
 </head>
@@ -193,9 +410,16 @@
 <body>
 
 <header class="header">
-    <div class="logo">TBS Search</div>
+
+    <div
+        class="logo"
+        id="logo"
+    >
+        TBS Search
+    </div>
 
     <div class="search-container">
+
         <input
             id="searchInput"
             class="search-box"
@@ -210,24 +434,120 @@
             class="search-button"
             aria-label="Suchen"
         >⌕</button>
+
     </div>
+
 </header>
 
-<div id="status" class="status"></div>
 
-<main id="results" class="results"></main>
+<!-- =========================================================
+     TABS
+     ========================================================= -->
 
-<div id="diagnostics" class="diagnostics"></div>
+<nav class="tabs">
+
+    <button
+        id="webTab"
+        class="tab active"
+        type="button"
+    >
+        🌐 Web
+    </button>
+
+    <button
+        id="imagesTab"
+        class="tab"
+        type="button"
+    >
+        🖼️ Bilder
+    </button>
+
+</nav>
+
+
+<div
+    id="status"
+    class="status"
+></div>
+
+
+<!-- =========================================================
+     WEB
+     ========================================================= -->
+
+<main
+    id="webResults"
+    class="results"
+></main>
+
+
+<!-- =========================================================
+     BILDER
+     ========================================================= -->
+
+<main
+    id="imageResults"
+    class="image-results"
+    style="display:none"
+></main>
+
+
+<div
+    id="diagnostics"
+    class="diagnostics"
+></div>
+
 
 <div class="footer">
     TBS Search
 </div>
 
+
+<!-- =========================================================
+     IMAGE VIEWER
+     ========================================================= -->
+
+<div
+    id="imageViewer"
+    class="image-viewer"
+>
+
+    <button
+        id="viewerClose"
+        class="viewer-close"
+        type="button"
+        aria-label="Schließen"
+    >×</button>
+
+    <div class="viewer-content">
+
+        <img
+            id="viewerImage"
+            class="viewer-image"
+            alt=""
+        >
+
+        <div
+            id="viewerCaption"
+            class="viewer-caption"
+        ></div>
+
+        <div
+            id="viewerSource"
+            class="viewer-source"
+        ></div>
+
+    </div>
+
+</div>
+
+
 <script>
 "use strict";
 
 /* ============================================================
-   TBS SEARCH v5 – SPEED EDITION
+   TBS SEARCH v6
+   WEB + BILDER
    ============================================================ */
 
 const INDEX_ROOT = "data/index";
@@ -238,110 +558,48 @@ const MAX_RESULTS = 100;
 const MAX_DOCUMENTS_TO_LOAD = 500;
 
 /*
- * Cache-Verhalten
- *
- * RAM-Cache:
- * Extrem schnell während der aktuellen Sitzung.
- *
- * IndexedDB:
- * Bleibt auch nach einem Reload erhalten.
- *
- * Dadurch müssen bereits geladene Shards normalerweise
- * nicht erneut vom Server geladen werden.
+ * Für die Bildersuche werden nur die ersten Suchergebnisse
+ * verwendet.
  */
+const MAX_IMAGE_SOURCE_PAGES = 5;
+
+/*
+ * Maximale Anzahl Bilder pro Seite.
+ */
+const MAX_IMAGES_PER_PAGE = 8;
+
+/*
+ * Maximale Gesamtzahl Bilder.
+ */
+const MAX_TOTAL_IMAGES = 40;
+
+
+/* ============================================================
+   CACHE
+   ============================================================ */
 
 const termCache = new Map();
 const documentShardCache = new Map();
 
+/*
+ * Cache für bereits analysierte Webseiten.
+ *
+ * Dadurch wird dieselbe Website während einer Sitzung
+ * nicht mehrfach heruntergeladen.
+ */
+const pageImageCache = new Map();
+
 let manifest = null;
+
 let searchGeneration = 0;
-
-let dbPromise = null;
-
-
-/* ============================================================
-   HILFSFUNKTIONEN
-   ============================================================ */
-
-function normalizeWord(word) {
-    return word
-        .toLowerCase()
-        .trim();
-}
-
-
-function escapeHTML(value) {
-    if (value === null || value === undefined) {
-        return "";
-    }
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-/*
- * Die Dokument-Shards werden in build_index.py so erzeugt:
-
- * shard = doc_id % 256
- *
- * Daher NICHT die ersten zwei Stellen der ID verwenden.
- */
-function documentShardName(docId) {
-    const number = Number(docId);
-
-    if (!Number.isFinite(number)) {
-        return "00";
-    }
-
-    return (number % 256)
-        .toString(16)
-        .padStart(2, "0");
-}
-
-
-function termShardName(term) {
-    const normalized = normalizeWord(term);
-
-    /*
-     * Browser-kompatible SHA-256-Funktion.
-     */
-    return crypto.subtle.digest(
-        "SHA-256",
-        new TextEncoder().encode(normalized)
-    ).then(buffer => {
-        const bytes = new Uint8Array(buffer);
-
-        let hex = "";
-
-        for (const byte of bytes) {
-            hex += byte.toString(16).padStart(2, "0");
-        }
-
-        return hex.substring(0, 2);
-    });
-}
-
-
-/*
- * Cache-Buster nur beim allerersten Abruf.
- *
- * Danach wird der Inhalt aus RAM/IndexedDB genommen.
- */
-function cacheBust(url) {
-    return url +
-        (url.includes("?") ? "&" : "?") +
-        "v=" + Date.now() + "-" + Math.random().toString(36).slice(2);
-}
 
 
 /* ============================================================
    INDEXEDDB
    ============================================================ */
+
+let dbPromise = null;
+
 
 function openDatabase() {
 
@@ -356,24 +614,39 @@ function openDatabase() {
             return;
         }
 
-        const request = indexedDB.open("TBS_Search_v5", 1);
+        const request =
+            indexedDB.open(
+                "TBS_Search_v6",
+                1
+            );
 
-        request.onupgradeneeded = event => {
+        request.onupgradeneeded =
+            event => {
 
-            const db = event.target.result;
+                const db =
+                    event.target.result;
 
-            if (!db.objectStoreNames.contains("cache")) {
-                db.createObjectStore("cache");
-            }
-        };
+                if (
+                    !db.objectStoreNames
+                        .contains("cache")
+                ) {
+                    db.createObjectStore(
+                        "cache"
+                    );
+                }
+            };
 
-        request.onsuccess = event => {
-            resolve(event.target.result);
-        };
+        request.onsuccess =
+            event => {
+                resolve(
+                    event.target.result
+                );
+            };
 
-        request.onerror = () => {
-            resolve(null);
-        };
+        request.onerror =
+            () => {
+                resolve(null);
+            };
     });
 
     return dbPromise;
@@ -382,7 +655,8 @@ function openDatabase() {
 
 async function dbGet(key) {
 
-    const db = await openDatabase();
+    const db =
+        await openDatabase();
 
     if (!db) {
         return null;
@@ -393,21 +667,31 @@ async function dbGet(key) {
         try {
 
             const transaction =
-                db.transaction("cache", "readonly");
+                db.transaction(
+                    "cache",
+                    "readonly"
+                );
 
             const store =
-                transaction.objectStore("cache");
+                transaction.objectStore(
+                    "cache"
+                );
 
             const request =
                 store.get(key);
 
-            request.onsuccess = () => {
-                resolve(request.result ?? null);
-            };
+            request.onsuccess =
+                () => {
+                    resolve(
+                        request.result ??
+                        null
+                    );
+                };
 
-            request.onerror = () => {
-                resolve(null);
-            };
+            request.onerror =
+                () => {
+                    resolve(null);
+                };
 
         } catch {
             resolve(null);
@@ -418,7 +702,8 @@ async function dbGet(key) {
 
 async function dbSet(key, value) {
 
-    const db = await openDatabase();
+    const db =
+        await openDatabase();
 
     if (!db) {
         return;
@@ -429,20 +714,26 @@ async function dbSet(key, value) {
         try {
 
             const transaction =
-                db.transaction("cache", "readwrite");
+                db.transaction(
+                    "cache",
+                    "readwrite"
+                );
 
             const store =
-                transaction.objectStore("cache");
+                transaction.objectStore(
+                    "cache"
+                );
 
-            store.put(value, key);
+            store.put(
+                value,
+                key
+            );
 
-            transaction.oncomplete = () => {
-                resolve();
-            };
+            transaction.oncomplete =
+                () => resolve();
 
-            transaction.onerror = () => {
-                resolve();
-            };
+            transaction.onerror =
+                () => resolve();
 
         } catch {
             resolve();
@@ -452,24 +743,116 @@ async function dbSet(key, value) {
 
 
 /* ============================================================
-   SCHNELLER FETCH
+   HILFSFUNKTIONEN
    ============================================================ */
+
+function normalizeWord(word) {
+
+    return word
+        .toLowerCase()
+        .trim();
+}
+
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function documentShardName(docId) {
+
+    const number =
+        Number(docId);
+
+    if (!Number.isFinite(number)) {
+        return "00";
+    }
+
+    return (
+        number % 256
+    )
+        .toString(16)
+        .padStart(2, "0");
+}
+
+
+async function termShardName(term) {
+
+    const normalized =
+        normalizeWord(term);
+
+    const hash =
+        await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(
+                normalized
+            )
+        );
+
+    const bytes =
+        new Uint8Array(hash);
+
+    let hex = "";
+
+    for (const byte of bytes) {
+
+        hex +=
+            byte
+                .toString(16)
+                .padStart(2, "0");
+    }
+
+    return hex.substring(0, 2);
+}
+
+
+function cacheBust(url) {
+
+    return (
+        url +
+        (
+            url.includes("?")
+                ? "&"
+                : "?"
+        ) +
+        "v=" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
+}
+
 
 async function fetchJSON(url) {
 
-    const response = await fetch(
-        cacheBust(url),
-        {
-            cache: "no-store"
-        }
-    );
+    const response =
+        await fetch(
+            cacheBust(url),
+            {
+                cache: "no-store"
+            }
+        );
 
     if (!response.ok) {
+
         throw new Error(
             "HTTP " +
-            response.status +
-            ": " +
-            url
+            response.status
         );
     }
 
@@ -483,83 +866,77 @@ async function fetchJSON(url) {
 
 async function loadManifest() {
 
-    const cacheKey = "manifest";
+    const manifestData =
+        await fetchJSON(
+            INDEX_ROOT +
+            "/manifest.json"
+        );
 
-    /*
-     * Manifest wird absichtlich immer frisch geprüft.
-     *
-     * So erkennen wir, wenn GitHub Actions einen neuen Index
-     * erzeugt hat.
-     */
-    const fresh = await fetchJSON(
-        INDEX_ROOT + "/manifest.json"
+    manifest =
+        manifestData;
+
+    await dbSet(
+        "manifest",
+        manifestData
     );
 
-    manifest = fresh;
-
-    /*
-     * Versionsinformationen speichern.
-     */
-    await dbSet(cacheKey, fresh);
-
-    return fresh;
+    return manifestData;
 }
 
 
 /* ============================================================
-   TERM SHARD
+   TERM-SHARDS
    ============================================================ */
 
 async function loadTermShard(term) {
 
-    const normalized = normalizeWord(term);
+    const normalized =
+        normalizeWord(term);
 
     if (!normalized) {
         return [];
     }
 
-    /*
-     * Bereits im RAM?
-     */
-    if (termCache.has(normalized)) {
-        return termCache.get(normalized);
+    if (
+        termCache.has(normalized)
+    ) {
+        return termCache.get(
+            normalized
+        );
     }
 
-    /*
-     * SHA-256 berechnen.
-     */
-    const shard = await termShardName(normalized);
-
-    const url =
-        TERMS_ROOT +
-        "/" +
-        shard +
-        ".json";
+    const shard =
+        await termShardName(
+            normalized
+        );
 
     const dbKey =
-        "term:" +
-        shard;
+        "term:" + shard;
 
-    /*
-     * Erst IndexedDB versuchen.
-     */
-    let data = await dbGet(dbKey);
+    let data =
+        await dbGet(dbKey);
 
     if (!data) {
 
         try {
 
-            data = await fetchJSON(url);
+            data =
+                await fetchJSON(
+                    TERMS_ROOT +
+                    "/" +
+                    shard +
+                    ".json"
+                );
 
-            /*
-             * Shard dauerhaft speichern.
-             */
-            await dbSet(dbKey, data);
+            await dbSet(
+                dbKey,
+                data
+            );
 
         } catch (error) {
 
             console.warn(
-                "Term-Shard konnte nicht geladen werden:",
+                "Term-Shard Fehler:",
                 error
             );
 
@@ -568,59 +945,66 @@ async function loadTermShard(term) {
     }
 
     const result =
-        Array.isArray(data[normalized])
+        Array.isArray(
+            data[normalized]
+        )
             ? data[normalized]
             : [];
 
-    termCache.set(normalized, result);
+    termCache.set(
+        normalized,
+        result
+    );
 
     return result;
 }
 
 
 /* ============================================================
-   DOKUMENT-SHARD
+   DOKUMENT-SHARDS
    ============================================================ */
 
-async function loadDocumentShard(shard) {
+async function loadDocumentShard(
+    shard
+) {
 
-    /*
-     * RAM
-     */
-    if (documentShardCache.has(shard)) {
-        return documentShardCache.get(shard);
+    if (
+        documentShardCache.has(
+            shard
+        )
+    ) {
+        return documentShardCache.get(
+            shard
+        );
     }
 
     const dbKey =
-        "docs:" +
-        shard;
+        "docs:" + shard;
 
-    /*
-     * IndexedDB
-     */
-    let data = await dbGet(dbKey);
+    let data =
+        await dbGet(dbKey);
 
     if (!data) {
 
-        const url =
-            DOCS_ROOT +
-            "/" +
-            shard +
-            ".json";
-
         try {
 
-            data = await fetchJSON(url);
+            data =
+                await fetchJSON(
+                    DOCS_ROOT +
+                    "/" +
+                    shard +
+                    ".json"
+                );
 
-            /*
-             * Dauerhaft speichern.
-             */
-            await dbSet(dbKey, data);
+            await dbSet(
+                dbKey,
+                data
+            );
 
         } catch (error) {
 
             console.warn(
-                "Dokument-Shard konnte nicht geladen werden:",
+                "Dokument-Shard Fehler:",
                 error
             );
 
@@ -628,80 +1012,97 @@ async function loadDocumentShard(shard) {
         }
     }
 
-    documentShardCache.set(shard, data);
+    documentShardCache.set(
+        shard,
+        data
+    );
 
     return data;
 }
 
 
-/* ============================================================
-   DOKUMENTE LADEN
-   ============================================================ */
-
 async function loadDocuments(ids) {
 
-    if (!ids || ids.length === 0) {
+    if (
+        !ids ||
+        ids.length === 0
+    ) {
         return [];
     }
 
     const limitedIds =
         ids
-            .slice(0, MAX_DOCUMENTS_TO_LOAD)
+            .slice(
+                0,
+                MAX_DOCUMENTS_TO_LOAD
+            )
             .map(Number);
 
-    /*
-     * IDs nach Dokument-Shard gruppieren.
-     */
-    const groups = new Map();
+    const groups =
+        new Map();
 
-    for (const id of limitedIds) {
+    for (
+        const id of limitedIds
+    ) {
 
         const shard =
             documentShardName(id);
 
         if (!groups.has(shard)) {
-            groups.set(shard, []);
+
+            groups.set(
+                shard,
+                []
+            );
         }
 
-        groups.get(shard).push(id);
+        groups
+            .get(shard)
+            .push(id);
     }
 
     /*
-     * ALLE benötigten Shards gleichzeitig laden.
-     *
-     * Das ist wesentlich schneller als nacheinander.
+     * Alle benötigten Shards
+     * parallel laden.
      */
-    const shardPromises = [];
+    const shardPromises =
+        [...groups.keys()]
+            .map(async shard => {
 
-    for (const shard of groups.keys()) {
+                const data =
+                    await loadDocumentShard(
+                        shard
+                    );
 
-        shardPromises.push(
-            loadDocumentShard(shard)
-                .then(data => ({
+                return {
                     shard,
                     data
-                }))
-        );
-    }
+                };
+            });
 
     const shardResults =
-        await Promise.all(shardPromises);
+        await Promise.all(
+            shardPromises
+        );
 
-    const shardMap = new Map();
+    const shardMap =
+        new Map();
 
-    for (const item of shardResults) {
+    for (
+        const item of shardResults
+    ) {
+
         shardMap.set(
             item.shard,
             item.data
         );
     }
 
-    /*
-     * Dokumente zusammensetzen.
-     */
     const result = [];
 
-    for (const id of limitedIds) {
+    for (
+        const id of limitedIds
+    ) {
 
         const shard =
             documentShardName(id);
@@ -713,14 +1114,11 @@ async function loadDocuments(ids) {
             continue;
         }
 
-        /*
-         * build_index.py speichert Dokumente mit numerischen
-         * IDs als Object-Keys.
-         */
         const document =
             data[String(id)];
 
         if (document) {
+
             result.push({
                 id,
                 ...document
@@ -733,23 +1131,34 @@ async function loadDocuments(ids) {
 
 
 /* ============================================================
-   SORTIERUNG
+   RANKING
    ============================================================ */
 
-function scoreDocument(doc, queryTerms) {
+function scoreDocument(
+    doc,
+    queryTerms
+) {
 
     const title =
-        normalizeWord(doc.title || "");
+        normalizeWord(
+            doc.title || ""
+        );
 
     const description =
-        normalizeWord(doc.description || "");
+        normalizeWord(
+            doc.description || ""
+        );
 
     const url =
-        normalizeWord(doc.url || "");
+        normalizeWord(
+            doc.url || ""
+        );
 
     let score = 0;
 
-    for (const term of queryTerms) {
+    for (
+        const term of queryTerms
+    ) {
 
         if (title === term) {
             score += 100;
@@ -759,7 +1168,9 @@ function scoreDocument(doc, queryTerms) {
             score += 50;
         }
 
-        if (description.includes(term)) {
+        if (
+            description.includes(term)
+        ) {
             score += 20;
         }
 
@@ -773,136 +1184,161 @@ function scoreDocument(doc, queryTerms) {
 
 
 /* ============================================================
-   MEHRERE SUCHBEGRIFFE
+   NORMALE SUCHE
    ============================================================ */
 
-async function searchTerms(terms, generation) {
+async function searchTerms(
+    terms,
+    generation
+) {
 
-    if (generation !== searchGeneration) {
+    if (
+        generation !==
+        searchGeneration
+    ) {
         return [];
     }
 
-    /*
-     * Alle Term-Shards parallel laden.
-     */
     const postingLists =
         await Promise.all(
-            terms.map(term =>
-                loadTermShard(term)
+            terms.map(
+                term =>
+                    loadTermShard(term)
             )
         );
 
-    if (generation !== searchGeneration) {
+    if (
+        generation !==
+        searchGeneration
+    ) {
         return [];
     }
 
-    /*
-     * Wenn irgendein Begriff nicht existiert,
-     * gibt es bei AND-Suche keine Treffer.
-     */
-    for (const list of postingLists) {
+    for (
+        const list of postingLists
+    ) {
 
-        if (!list || list.length === 0) {
+        if (
+            !list ||
+            list.length === 0
+        ) {
             return [];
         }
     }
 
     /*
      * Kleinste Liste zuerst.
-     *
-     * Dadurch wird die Schnittmengenberechnung schneller.
      */
     const sortedLists =
-        [...postingLists].sort(
-            (a, b) => a.length - b.length
-        );
+        [...postingLists]
+            .sort(
+                (a, b) =>
+                    a.length -
+                    b.length
+            );
 
     let candidates =
-        new Set(sortedLists[0]);
+        new Set(
+            sortedLists[0]
+        );
 
-    for (let i = 1; i < sortedLists.length; i++) {
+    for (
+        let i = 1;
+        i < sortedLists.length;
+        i++
+    ) {
 
         const current =
-            new Set(sortedLists[i]);
+            new Set(
+                sortedLists[i]
+            );
 
         candidates =
             new Set(
                 [...candidates]
-                    .filter(id => current.has(id))
+                    .filter(
+                        id =>
+                            current.has(id)
+                    )
             );
 
-        if (candidates.size === 0) {
+        if (
+            candidates.size === 0
+        ) {
             return [];
         }
     }
 
-    /*
-     * IDs für loadDocuments.
-     */
-    const ids =
+    return loadDocuments(
         [...candidates]
-            .slice(0, MAX_DOCUMENTS_TO_LOAD);
-
-    return loadDocuments(ids);
+    );
 }
 
 
 /* ============================================================
-   EIN-ZEICHEN-FALL
+   EIN-ZEICHEN-SUCHE
    ============================================================ */
 
-/*
- * build_index.py indexiert absichtlich nur Wörter ab
- * zwei Zeichen.
- *
- * Deshalb kann z.B. "e" nicht über den Term-Index gesucht
- * werden.
- *
- * Für solche Suchanfragen verwenden wir einen langsameren
- * Fallback.
- */
-
-async function searchSingleCharacter(term, generation) {
+async function searchSingleCharacter(
+    term,
+    generation
+) {
 
     const result = [];
 
-    /*
-     * Nur die Dokument-Shards parallel laden.
-     *
-     * Danach bleiben sie im IndexedDB/RAM-Cache.
-     */
-    const shardNumbers =
+    const shards =
         Array.from(
             { length: 256 },
             (_, i) =>
-                i.toString(16).padStart(2, "0")
+                i.toString(16)
+                    .padStart(2, "0")
         );
 
-    const documents =
+    /*
+     * Parallel laden.
+     */
+    const shardResults =
         await Promise.all(
-            shardNumbers.map(async shard => {
+            shards.map(
+                async shard => {
 
-                if (generation !== searchGeneration) {
-                    return [];
+                    if (
+                        generation !==
+                        searchGeneration
+                    ) {
+                        return [];
+                    }
+
+                    const data =
+                        await loadDocumentShard(
+                            shard
+                        );
+
+                    return Object.values(
+                        data || {}
+                    );
                 }
-
-                const data =
-                    await loadDocumentShard(shard);
-
-                return Object.values(data || {});
-            })
+            )
         );
 
-    if (generation !== searchGeneration) {
+    if (
+        generation !==
+        searchGeneration
+    ) {
         return [];
     }
 
     const needle =
         normalizeWord(term);
 
-    for (const shardDocs of documents) {
+    for (
+        const documents
+        of shardResults
+    ) {
 
-        for (const doc of shardDocs) {
+        for (
+            const doc of documents
+        ) {
 
             const text = (
                 (doc.title || "") +
@@ -912,11 +1348,16 @@ async function searchSingleCharacter(term, generation) {
                 (doc.url || "")
             ).toLowerCase();
 
-            if (text.includes(needle)) {
+            if (
+                text.includes(needle)
+            ) {
 
                 result.push(doc);
 
-                if (result.length >= MAX_RESULTS) {
+                if (
+                    result.length >=
+                    MAX_RESULTS
+                ) {
                     return result;
                 }
             }
@@ -928,159 +1369,24 @@ async function searchSingleCharacter(term, generation) {
 
 
 /* ============================================================
-   HAUPTSUCHE
+   WEB-ERGEBNISSE RENDERN
    ============================================================ */
 
-async function performSearch(query) {
+function renderWebResults(
+    documents
+) {
 
-    const generation =
-        ++searchGeneration;
+    const element =
+        document.getElementById(
+            "webResults"
+        );
 
-    const resultsElement =
-        document.getElementById("results");
+    if (
+        !documents ||
+        documents.length === 0
+    ) {
 
-    const statusElement =
-        document.getElementById("status");
-
-    const diagnosticsElement =
-        document.getElementById("diagnostics");
-
-    const startTime =
-        performance.now();
-
-    resultsElement.innerHTML = "";
-
-    if (!query.trim()) {
-
-        statusElement.textContent = "";
-
-        diagnosticsElement.style.display =
-            "none";
-
-        return;
-    }
-
-    const terms =
-        query
-            .trim()
-            .toLowerCase()
-            .split(/\s+/)
-            .map(normalizeWord)
-            .filter(Boolean);
-
-    statusElement.innerHTML =
-        '<span class="loading">' +
-        '<span class="spinner"></span>' +
-        'Suche...' +
-        '</span>';
-
-    try {
-
-        let documents;
-
-        /*
-         * Ein-Zeichen-Suche
-         */
-        if (
-            terms.length === 1 &&
-            terms[0].length === 1
-        ) {
-
-            documents =
-                await searchSingleCharacter(
-                    terms[0],
-                    generation
-                );
-
-        } else {
-
-            /*
-             * Normale schnelle Term-Suche.
-             */
-            documents =
-                await searchTerms(
-                    terms,
-                    generation
-                );
-        }
-
-        /*
-         * Abgebrochene alte Suche ignorieren.
-         */
-        if (generation !== searchGeneration) {
-            return;
-        }
-
-        /*
-         * Relevanz berechnen.
-         */
-        documents =
-            documents
-                .map(doc => ({
-                    doc,
-                    score:
-                        scoreDocument(
-                            doc,
-                            terms
-                        )
-                }))
-                .sort((a, b) =>
-                    b.score - a.score
-                )
-                .slice(0, MAX_RESULTS)
-                .map(item => item.doc);
-
-        renderResults(documents);
-
-        const elapsed =
-            Math.round(
-                performance.now() - startTime
-            );
-
-        statusElement.textContent =
-            documents.length +
-            " Treffer · " +
-            elapsed +
-            " ms";
-
-        diagnosticsElement.textContent =
-            "RAM Term-Cache: " +
-            termCache.size +
-            " · RAM Dokument-Shards: " +
-            documentShardCache.size +
-            " · Index-Dokumente: " +
-            (manifest?.documents ?? "?");
-
-        diagnosticsElement.style.display =
-            "block";
-
-    } catch (error) {
-
-        console.error(error);
-
-        statusElement.textContent =
-            "Fehler bei der Suche.";
-
-        resultsElement.innerHTML =
-            '<div class="empty">' +
-            escapeHTML(error.message) +
-            '</div>';
-    }
-}
-
-
-/* ============================================================
-   ERGEBNISSE ANZEIGEN
-   ============================================================ */
-
-function renderResults(documents) {
-
-    const resultsElement =
-        document.getElementById("results");
-
-    if (!documents || documents.length === 0) {
-
-        resultsElement.innerHTML =
+        element.innerHTML =
             '<div class="empty">' +
             'Keine Ergebnisse gefunden.' +
             '</div>';
@@ -1091,10 +1397,14 @@ function renderResults(documents) {
     const fragment =
         document.createDocumentFragment();
 
-    for (const doc of documents) {
+    for (
+        const doc of documents
+    ) {
 
         const article =
-            document.createElement("article");
+            document.createElement(
+                "article"
+            );
 
         article.className =
             "result";
@@ -1118,7 +1428,9 @@ function renderResults(documents) {
                 href="${escapeHTML(url)}"
                 target="_blank"
                 rel="noopener noreferrer"
-            >${escapeHTML(title)}</a>
+            >
+                ${escapeHTML(title)}
+            </a>
 
             <div class="result-url">
                 ${escapeHTML(url)}
@@ -1126,49 +1438,886 @@ function renderResults(documents) {
 
             ${
                 description
-                    ? `<div class="result-description">
-                        ${escapeHTML(description)}
-                       </div>`
+                    ? `
+                        <div class="result-description">
+                            ${escapeHTML(
+                                description
+                            )}
+                        </div>
+                      `
                     : ""
             }
         `;
 
-        fragment.appendChild(article);
+        fragment.appendChild(
+            article
+        );
     }
 
-    resultsElement.appendChild(fragment);
+    element.appendChild(
+        fragment
+    );
 }
 
 
 /* ============================================================
-   SUCHE AUS URL
+   BILDER AUS EINER WEBSEITE LESEN
    ============================================================ */
 
-function getQueryFromURL() {
+async function extractImagesFromPage(
+    pageUrl
+) {
 
-    const params =
-        new URLSearchParams(
-            window.location.search
+    /*
+     * Bereits analysiert?
+     */
+    if (
+        pageImageCache.has(pageUrl)
+    ) {
+
+        return pageImageCache.get(
+            pageUrl
+        );
+    }
+
+    /*
+     * Direkter Abruf.
+     *
+     * Funktioniert nur bei Seiten,
+     * die Browser-CORS erlauben.
+     */
+    let response;
+
+    try {
+
+        response =
+            await fetch(
+                pageUrl,
+                {
+                    method: "GET",
+                    redirect: "follow",
+                    credentials: "omit"
+                }
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "Seite wegen CORS nicht lesbar:",
+            pageUrl
         );
 
-    return params.get("q") || "";
+        pageImageCache.set(
+            pageUrl,
+            []
+        );
+
+        return [];
+    }
+
+    if (!response.ok) {
+
+        pageImageCache.set(
+            pageUrl,
+            []
+        );
+
+        return [];
+    }
+
+    const contentType =
+        response.headers.get(
+            "content-type"
+        ) || "";
+
+    /*
+     * Nur HTML analysieren.
+     */
+    if (
+        !contentType.includes(
+            "text/html"
+        )
+    ) {
+
+        pageImageCache.set(
+            pageUrl,
+            []
+        );
+
+        return [];
+    }
+
+    let html;
+
+    try {
+
+        html =
+            await response.text();
+
+    } catch {
+
+        pageImageCache.set(
+            pageUrl,
+            []
+        );
+
+        return [];
+    }
+
+    const parser =
+        new DOMParser();
+
+    const document =
+        parser.parseFromString(
+            html,
+            "text/html"
+        );
+
+    const imageElements =
+        [...document.querySelectorAll(
+            "img"
+        )];
+
+    const images = [];
+
+    for (
+        const img of imageElements
+    ) {
+
+        if (
+            images.length >=
+            MAX_IMAGES_PER_PAGE
+        ) {
+            break;
+        }
+
+        /*
+         * Verschiedene Bildquellen
+         * unterstützen.
+         */
+        let src =
+            img.getAttribute(
+                "src"
+            );
+
+        if (!src) {
+
+            src =
+                img.getAttribute(
+                    "data-src"
+                );
+        }
+
+        if (!src) {
+
+            src =
+                img.getAttribute(
+                    "data-lazy-src"
+                );
+        }
+
+        if (!src) {
+            continue;
+        }
+
+        /*
+         * Relative URLs in absolute
+         * URLs umwandeln.
+         */
+        try {
+
+            src =
+                new URL(
+                    src,
+                    pageUrl
+                ).href;
+
+        } catch {
+            continue;
+        }
+
+        /*
+         * Data-URLs überspringen.
+         */
+        if (
+            src.startsWith(
+                "data:"
+            )
+        ) {
+            continue;
+        }
+
+        /*
+         * SVG überspringen.
+         */
+        if (
+            src
+                .toLowerCase()
+                .startsWith(
+                    "data:image/svg"
+                )
+        ) {
+            continue;
+        }
+
+        const alt =
+            img.getAttribute(
+                "alt"
+            ) || "";
+
+        const title =
+            img.getAttribute(
+                "title"
+            ) || "";
+
+        images.push({
+            src,
+            alt,
+            title,
+            pageUrl
+        });
+    }
+
+    /*
+     * Duplikate entfernen.
+     */
+    const unique =
+        [];
+
+    const seen =
+        new Set();
+
+    for (
+        const image of images
+    ) {
+
+        if (
+            seen.has(image.src)
+        ) {
+            continue;
+        }
+
+        seen.add(
+            image.src
+        );
+
+        unique.push(
+            image
+        );
+    }
+
+    pageImageCache.set(
+        pageUrl,
+        unique
+    );
+
+    return unique;
 }
 
 
 /* ============================================================
-   EVENTS
+   BILDER RENDERN
+   ============================================================ */
+
+function renderImageResults(
+    images
+) {
+
+    const container =
+        document.getElementById(
+            "imageResults"
+        );
+
+    container.innerHTML = "";
+
+    if (
+        !images ||
+        images.length === 0
+    ) {
+
+        container.innerHTML =
+            '<div class="empty">' +
+            'Keine Bilder gefunden.' +
+            '</div>';
+
+        return;
+    }
+
+    const fragment =
+        document.createDocumentFragment();
+
+    for (
+        const image of images
+    ) {
+
+        const card =
+            document.createElement(
+                "article"
+            );
+
+        card.className =
+            "image-card";
+
+        const wrapper =
+            document.createElement(
+                "div"
+            );
+
+        wrapper.className =
+            "image-wrapper";
+
+        const img =
+            document.createElement(
+                "img"
+            );
+
+        img.loading = "lazy";
+
+        img.decoding = "async";
+
+        img.src =
+            image.src;
+
+        img.alt =
+            image.alt ||
+            "Bild";
+
+        /*
+         * Falls das Bild selbst nicht
+         * geladen werden kann:
+         *
+         * Karte entfernen.
+         */
+        img.addEventListener(
+            "error",
+            () => {
+
+                card.remove();
+
+            },
+            {
+                once: true
+            }
+        );
+
+        wrapper.appendChild(
+            img
+        );
+
+        const info =
+            document.createElement(
+                "div"
+            );
+
+        info.className =
+            "image-info";
+
+        const title =
+            document.createElement(
+                "div"
+            );
+
+        title.className =
+            "image-title";
+
+        title.textContent =
+            image.alt ||
+            image.title ||
+            "Bild";
+
+        const source =
+            document.createElement(
+                "div"
+            );
+
+        source.className =
+            "image-source";
+
+        source.textContent =
+            getHostname(
+                image.pageUrl
+            );
+
+        info.appendChild(
+            title
+        );
+
+        info.appendChild(
+            source
+        );
+
+        card.appendChild(
+            wrapper
+        );
+
+        card.appendChild(
+            info
+        );
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                openImageViewer(
+                    image
+                );
+            }
+        );
+
+        fragment.appendChild(
+            card
+        );
+    }
+
+    container.appendChild(
+        fragment
+    );
+}
+
+
+function getHostname(url) {
+
+    try {
+
+        return new URL(
+            url
+        ).hostname;
+
+    } catch {
+
+        return url;
+    }
+}
+
+
+/* ============================================================
+   BILDER-SUCHE
+   ============================================================ */
+
+async function searchImages(
+    documents,
+    generation
+) {
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+    const images = [];
+
+    /*
+     * Nur die Top 5 Suchergebnisse.
+     */
+    const pages =
+        documents.slice(
+            0,
+            MAX_IMAGE_SOURCE_PAGES
+        );
+
+    if (
+        pages.length === 0
+    ) {
+
+        renderImageResults([]);
+
+        return;
+    }
+
+    /*
+     * Seiten parallel analysieren.
+     */
+    const pageResults =
+        await Promise.all(
+            pages.map(
+                async page => {
+
+                    if (
+                        generation !==
+                        searchGeneration
+                    ) {
+                        return [];
+                    }
+
+                    return extractImagesFromPage(
+                        page.url
+                    );
+                }
+            )
+        );
+
+    if (
+        generation !==
+        searchGeneration
+    ) {
+        return;
+    }
+
+    for (
+        const pageImages
+        of pageResults
+    ) {
+
+        for (
+            const image of pageImages
+        ) {
+
+            /*
+             * Doppelte Bild-URLs
+             * vermeiden.
+             */
+            if (
+                images.some(
+                    existing =>
+                        existing.src ===
+                        image.src
+                )
+            ) {
+                continue;
+            }
+
+            images.push(
+                image
+            );
+
+            if (
+                images.length >=
+                MAX_TOTAL_IMAGES
+            ) {
+                break;
+            }
+        }
+
+        if (
+            images.length >=
+            MAX_TOTAL_IMAGES
+        ) {
+            break;
+        }
+    }
+
+    renderImageResults(
+        images
+    );
+
+    status.textContent =
+        images.length +
+        " Bilder aus " +
+        pages.length +
+        " Suchergebnissen";
+}
+
+
+/* ============================================================
+   HAUPTSUCHE
+   ============================================================ */
+
+async function performSearch(
+    query
+) {
+
+    const generation =
+        ++searchGeneration;
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+    const diagnostics =
+        document.getElementById(
+            "diagnostics"
+        );
+
+    const webResults =
+        document.getElementById(
+            "webResults"
+        );
+
+    const imageResults =
+        document.getElementById(
+            "imageResults"
+        );
+
+    const startTime =
+        performance.now();
+
+    webResults.innerHTML = "";
+
+    imageResults.innerHTML = "";
+
+    if (
+        !query.trim()
+    ) {
+
+        status.textContent =
+            "";
+
+        diagnostics.style.display =
+            "none";
+
+        return;
+    }
+
+    const terms =
+        query
+            .trim()
+            .toLowerCase()
+            .split(/\s+/)
+            .map(normalizeWord)
+            .filter(Boolean);
+
+    status.innerHTML =
+        '<span class="loading">' +
+        '<span class="spinner"></span>' +
+        'Suche...' +
+        '</span>';
+
+    try {
+
+        let documents;
+
+        if (
+            terms.length === 1 &&
+            terms[0].length === 1
+        ) {
+
+            documents =
+                await searchSingleCharacter(
+                    terms[0],
+                    generation
+                );
+
+        } else {
+
+            documents =
+                await searchTerms(
+                    terms,
+                    generation
+                );
+        }
+
+        if (
+            generation !==
+            searchGeneration
+        ) {
+            return;
+        }
+
+        /*
+         * Ranking.
+         */
+        documents =
+            documents
+                .map(doc => ({
+                    doc,
+                    score:
+                        scoreDocument(
+                            doc,
+                            terms
+                        )
+                }))
+                .sort(
+                    (a, b) =>
+                        b.score -
+                        a.score
+                )
+                .slice(
+                    0,
+                    MAX_RESULTS
+                )
+                .map(
+                    item => item.doc
+                );
+
+        /*
+         * Web-Ergebnisse immer vorbereiten.
+         */
+        renderWebResults(
+            documents
+        );
+
+        const elapsed =
+            Math.round(
+                performance.now() -
+                startTime
+            );
+
+        status.textContent =
+            documents.length +
+            " Treffer · " +
+            elapsed +
+            " ms";
+
+        diagnostics.textContent =
+            "RAM Term-Cache: " +
+            termCache.size +
+            " · RAM Dokument-Shards: " +
+            documentShardCache.size +
+            " · Seiten-Bildcache: " +
+            pageImageCache.size +
+            " · Index-Dokumente: " +
+            (
+                manifest?.documents ??
+                "?"
+            );
+
+        diagnostics.style.display =
+            "block";
+
+        /*
+         * Wenn Bilder aktiv sind,
+         * direkt Bildersuche starten.
+         */
+        if (
+            currentTab === "images"
+        ) {
+
+            await searchImages(
+                documents,
+                generation
+            );
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Fehler bei der Suche.";
+
+        webResults.innerHTML =
+            '<div class="empty">' +
+            escapeHTML(
+                error.message
+            ) +
+            '</div>';
+    }
+}
+
+
+/* ============================================================
+   TABS
+   ============================================================ */
+
+let currentTab =
+    "web";
+
+
+const webTab =
+    document.getElementById(
+        "webTab"
+    );
+
+const imagesTab =
+    document.getElementById(
+        "imagesTab"
+    );
+
+const webResults =
+    document.getElementById(
+        "webResults"
+    );
+
+const imageResults =
+    document.getElementById(
+        "imageResults"
+    );
+
+
+function switchTab(
+    tab
+) {
+
+    currentTab =
+        tab;
+
+    if (
+        tab === "web"
+    ) {
+
+        webTab.classList.add(
+            "active"
+        );
+
+        imagesTab.classList.remove(
+            "active"
+        );
+
+        webResults.style.display =
+            "block";
+
+        imageResults.style.display =
+            "none";
+
+        return;
+    }
+
+    imagesTab.classList.add(
+        "active"
+    );
+
+    webTab.classList.remove(
+        "active"
+    );
+
+    webResults.style.display =
+        "none";
+
+    imageResults.style.display =
+        "grid";
+
+    /*
+     * Wenn bereits eine Suchanfrage
+     * vorhanden ist, Bildersuche starten.
+     */
+    const query =
+        searchInput.value.trim();
+
+    if (query) {
+
+        performSearch(
+            query
+        );
+    }
+}
+
+
+webTab.addEventListener(
+    "click",
+    () => {
+        switchTab("web");
+    }
+);
+
+
+imagesTab.addEventListener(
+    "click",
+    () => {
+        switchTab("images");
+    }
+);
+
+
+/* ============================================================
+   SUCHFELD
    ============================================================ */
 
 const searchInput =
-    document.getElementById("searchInput");
+    document.getElementById(
+        "searchInput"
+    );
 
 const searchButton =
-    document.getElementById("searchButton");
+    document.getElementById(
+        "searchButton"
+    );
 
 
 searchButton.addEventListener(
     "click",
     () => {
+
         performSearch(
             searchInput.value
         );
@@ -1180,7 +2329,9 @@ searchInput.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
 
             event.preventDefault();
 
@@ -1192,12 +2343,154 @@ searchInput.addEventListener(
 );
 
 
-/*
- * Kein automatisches Suchen bei jedem Tastendruck.
- *
- * Dadurch wird nicht bei jedem Buchstaben ein kompletter
- * Suchvorgang gestartet.
- */
+/* ============================================================
+   IMAGE VIEWER
+   ============================================================ */
+
+const imageViewer =
+    document.getElementById(
+        "imageViewer"
+    );
+
+const viewerImage =
+    document.getElementById(
+        "viewerImage"
+    );
+
+const viewerCaption =
+    document.getElementById(
+        "viewerCaption"
+    );
+
+const viewerSource =
+    document.getElementById(
+        "viewerSource"
+    );
+
+
+function openImageViewer(
+    image
+) {
+
+    viewerImage.src =
+        image.src;
+
+    viewerImage.alt =
+        image.alt ||
+        "Bild";
+
+    viewerCaption.textContent =
+        image.alt ||
+        image.title ||
+        "";
+
+    viewerSource.textContent =
+        image.pageUrl;
+
+    imageViewer.classList.add(
+        "visible"
+    );
+}
+
+
+function closeImageViewer() {
+
+    imageViewer.classList.remove(
+        "visible"
+    );
+
+    /*
+     * Bildquelle leeren, damit der
+     * Browser sie nicht unnötig weiter
+     * hält.
+     */
+    viewerImage.src =
+        "";
+}
+
+
+document.getElementById(
+    "viewerClose"
+).addEventListener(
+    "click",
+    closeImageViewer
+);
+
+
+imageViewer.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
+            imageViewer
+        ) {
+            closeImageViewer();
+        }
+    }
+);
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+            closeImageViewer();
+        }
+    }
+);
+
+
+/* ============================================================
+   LOGO
+   ============================================================ */
+
+document.getElementById(
+    "logo"
+).addEventListener(
+    "click",
+    () => {
+
+        searchInput.value =
+            "";
+
+        webResults.innerHTML =
+            "";
+
+        imageResults.innerHTML =
+            "";
+
+        document.getElementById(
+            "status"
+        ).textContent =
+            "";
+
+        switchTab(
+            "web"
+        );
+    }
+);
+
+
+/* ============================================================
+   URL
+   ============================================================ */
+
+function getQueryFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return (
+        params.get("q") ||
+        ""
+    );
+}
 
 
 /* ============================================================
@@ -1206,12 +2499,14 @@ searchInput.addEventListener(
 
 async function initialize() {
 
-    const statusElement =
-        document.getElementById("status");
+    const status =
+        document.getElementById(
+            "status"
+        );
 
     try {
 
-        statusElement.innerHTML =
+        status.innerHTML =
             '<span class="loading">' +
             '<span class="spinner"></span>' +
             'Index wird geladen...' +
@@ -1220,23 +2515,19 @@ async function initialize() {
         /*
          * Nur Manifest laden.
          *
-         * Noch KEINE Dokument-Shards!
-         *
-         * Dadurch startet die Website sehr schnell.
+         * Die eigentlichen Shards werden
+         * erst bei der Suche geladen.
          */
         await loadManifest();
 
-        statusElement.textContent =
+        status.textContent =
             "Bereit · " +
-            (manifest?.documents ?? "?") +
+            (
+                manifest?.documents ??
+                "?"
+            ) +
             " Dokumente";
 
-        /*
-         * Query aus URL übernehmen.
-         *
-         * Beispiel:
-         * ?q=linux
-         */
         const query =
             getQueryFromURL();
 
@@ -1245,21 +2536,23 @@ async function initialize() {
             searchInput.value =
                 query;
 
-            await performSearch(query);
+            await performSearch(
+                query
+            );
         }
 
     } catch (error) {
 
         console.error(error);
 
-        statusElement.textContent =
+        status.textContent =
             "Index konnte nicht geladen werden.";
 
-        document.getElementById(
-            "results"
-        ).innerHTML =
+        webResults.innerHTML =
             '<div class="empty">' +
-            escapeHTML(error.message) +
+            escapeHTML(
+                error.message
+            ) +
             '</div>';
     }
 }
