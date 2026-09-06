@@ -19,7 +19,7 @@ DATA_DIR = "data"
 PAGES_DIR = os.path.join(DATA_DIR, "pages")
 
 START_URLS = [
-    "https://dmoz.kodbel.com/"
+    "https://www.instagram.com/"
 ]
 
 MAX_PAGES_PER_RUN = 1000
