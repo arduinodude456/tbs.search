@@ -7,403 +7,371 @@
 <title>TBS Search</title>
 
 <style>
-    * {
-        box-sizing: border-box;
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fff;
+    color: #202124;
+}
+
+body {
+    padding-bottom: 50px;
+}
+
+/* HEADER */
+
+.header {
+    width: 100%;
+    padding: 30px 20px 12px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    color: #202124;
+    margin-bottom: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* SUCHFELD */
+
+.search-container {
+    width: min(720px, 94vw);
+    margin: auto;
+    position: relative;
+}
+
+.search-box {
+    width: 100%;
+    height: 52px;
+    border: 1px solid #dfe1e5;
+    border-radius: 28px;
+    padding: 0 55px 0 20px;
+    font-size: 17px;
+    outline: none;
+    box-shadow: 0 2px 7px rgba(0,0,0,.08);
+}
+
+.search-box:focus {
+    border-color: #aaa;
+    box-shadow: 0 2px 10px rgba(0,0,0,.14);
+}
+
+.search-button {
+    position: absolute;
+    right: 8px;
+    top: 7px;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: #202124;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.search-button:hover {
+    background: #000;
+}
+
+/* TABS */
+
+.tabs {
+    width: min(900px,94vw);
+    margin: 15px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.tab {
+    border: 0;
+    background: transparent;
+    color: #70757a;
+    font-size: 14px;
+    padding: 11px 20px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+
+.tab:hover,
+.tab.active {
+    color: #202124;
+}
+
+.tab.active {
+    border-bottom-color: #202124;
+    font-weight: 600;
+}
+
+/* STATUS */
+
+.status {
+    width: min(900px,94vw);
+    margin: 18px auto 10px;
+    color: #70757a;
+    font-size: 13px;
+    min-height: 18px;
+}
+
+/* ERGEBNISSE */
+
+.results {
+    width: min(900px,94vw);
+    margin: auto;
+}
+
+.result {
+    margin: 0 0 27px;
+}
+
+.result-title {
+    display: block;
+    font-size: 20px;
+    color: #1a0dab;
+    text-decoration: none;
+    margin-bottom: 4px;
+    overflow-wrap: anywhere;
+}
+
+.result-title:hover {
+    text-decoration: underline;
+}
+
+.result-url {
+    color: #188038;
+    font-size: 14px;
+    margin-bottom: 5px;
+    overflow-wrap: anywhere;
+}
+
+.result-description {
+    color: #4d5156;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.result-description mark {
+    background: #fff0a8;
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* BILDER */
+
+.image-results {
+    width: min(1100px,96vw);
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    gap: 14px;
+}
+
+.image-card {
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    cursor: pointer;
+    transition: transform .15s,box-shadow .15s;
+}
+
+.image-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,.12);
+}
+
+.image-wrapper {
+    width: 100%;
+    height: 180px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-info {
+    padding: 9px 10px 11px;
+}
+
+.image-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.image-source {
+    margin-top: 5px;
+    font-size: 11px;
+    color: #188038;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* IMAGE VIEWER */
+
+.image-viewer {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.88);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+}
+
+.image-viewer.visible {
+    display: flex;
+}
+
+.viewer-content {
+    max-width: 95vw;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.viewer-image {
+    max-width: 95vw;
+    max-height: 78vh;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+.viewer-caption {
+    margin-top: 12px;
+    max-width: 90vw;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+}
+
+.viewer-source {
+    margin-top: 6px;
+    color: #ccc;
+    font-size: 12px;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.viewer-close {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    color: white;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+/* ALLGEMEIN */
+
+.empty {
+    text-align: center;
+    color: #70757a;
+    margin-top: 45px;
+    font-size: 16px;
+}
+
+.loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid #ddd;
+    border-top-color: #555;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
+}
 
-    html,
-    body {
-        margin: 0;
-        padding: 0;
-        min-height: 100%;
-        font-family: Arial, Helvetica, sans-serif;
-        background: #fff;
-        color: #202124;
-    }
+.diagnostics {
+    width: min(900px,94vw);
+    margin: 25px auto;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #70757a;
+    font-size: 11px;
+    display: none;
+}
 
-    body {
-        padding-bottom: 50px;
-    }
+.footer {
+    text-align: center;
+    color: #9aa0a6;
+    font-size: 12px;
+    margin-top: 60px;
+}
 
-    /* =========================================================
-       HEADER
-       ========================================================= */
-
+@media(max-width:600px) {
     .header {
-        width: 100%;
-        padding: 30px 20px 12px;
-        text-align: center;
+        padding-top: 20px;
     }
 
     .logo {
-        font-size: 42px;
-        font-weight: 700;
-        letter-spacing: -2px;
-        color: #202124;
-        margin-bottom: 20px;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    /* =========================================================
-       SUCHFELD
-       ========================================================= */
-
-    .search-container {
-        width: min(720px, 94vw);
-        margin: auto;
-        position: relative;
+        font-size: 36px;
     }
 
     .search-box {
-        width: 100%;
-        height: 52px;
-        border: 1px solid #dfe1e5;
-        border-radius: 28px;
-        padding: 0 55px 0 20px;
-        font-size: 17px;
-        outline: none;
-        box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08);
-        transition:
-            box-shadow 0.15s,
-            border-color 0.15s;
-    }
-
-    .search-box:focus {
-        border-color: #aaa;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
-    }
-
-    .search-button {
-        position: absolute;
-        right: 8px;
-        top: 7px;
-        width: 38px;
-        height: 38px;
-        border: 0;
-        border-radius: 50%;
-        background: #202124;
-        color: white;
-        cursor: pointer;
-        font-size: 18px;
-    }
-
-    .search-button:hover {
-        background: #000;
-    }
-
-    /* =========================================================
-       TABS
-       ========================================================= */
-
-    .tabs {
-        width: min(900px, 94vw);
-        margin: 15px auto 0;
-        display: flex;
-        justify-content: center;
-        gap: 5px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .tab {
-        border: 0;
-        background: transparent;
-        color: #70757a;
-        font-size: 14px;
-        padding: 11px 20px;
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
-        transition:
-            color 0.15s,
-            border-color 0.15s;
-    }
-
-    .tab:hover {
-        color: #202124;
-    }
-
-    .tab.active {
-        color: #202124;
-        border-bottom-color: #202124;
-        font-weight: 600;
-    }
-
-    /* =========================================================
-       STATUS
-       ========================================================= */
-
-    .status {
-        width: min(900px, 94vw);
-        margin: 18px auto 10px;
-        color: #70757a;
-        font-size: 13px;
-        min-height: 18px;
-    }
-
-    /* =========================================================
-       WEB-ERGEBNISSE
-       ========================================================= */
-
-    .results {
-        width: min(900px, 94vw);
-        margin: auto;
-    }
-
-    .result {
-        margin: 0 0 24px;
-    }
-
-    .result-title {
-        display: block;
-        font-size: 20px;
-        color: #1a0dab;
-        text-decoration: none;
-        margin-bottom: 4px;
-        overflow-wrap: anywhere;
-    }
-
-    .result-title:hover {
-        text-decoration: underline;
-    }
-
-    .result-url {
-        color: #188038;
-        font-size: 14px;
-        margin-bottom: 5px;
-        overflow-wrap: anywhere;
-    }
-
-    .result-description {
-        color: #4d5156;
-        font-size: 14px;
-        line-height: 1.45;
-    }
-
-    /* =========================================================
-       BILDER
-       ========================================================= */
-
-    .image-results {
-        width: min(1100px, 96vw);
-        margin: auto;
-        display: grid;
-        grid-template-columns: repeat(
-            auto-fill,
-            minmax(180px, 1fr)
-        );
-        gap: 14px;
-    }
-
-    .image-card {
-        border: 1px solid #e5e5e5;
-        border-radius: 10px;
-        overflow: hidden;
-        background: #fff;
-        cursor: pointer;
-        transition:
-            transform 0.15s,
-            box-shadow 0.15s;
-    }
-
-    .image-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
-    }
-
-    .image-wrapper {
-        width: 100%;
-        height: 180px;
-        background: #f5f5f5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-
-    .image-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .image-info {
-        padding: 9px 10px 11px;
-    }
-
-    .image-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: #333;
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .image-source {
-        margin-top: 5px;
-        font-size: 11px;
-        color: #188038;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-
-    /* =========================================================
-       IMAGE VIEWER
-       ========================================================= */
-
-    .image-viewer {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.88);
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 25px;
-    }
-
-    .image-viewer.visible {
-        display: flex;
-    }
-
-    .viewer-content {
-        max-width: 95vw;
-        max-height: 92vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .viewer-image {
-        max-width: 95vw;
-        max-height: 78vh;
-        object-fit: contain;
-        border-radius: 5px;
-    }
-
-    .viewer-caption {
-        margin-top: 12px;
-        max-width: 90vw;
-        color: white;
-        text-align: center;
-        font-size: 14px;
-    }
-
-    .viewer-source {
-        margin-top: 6px;
-        color: #ccc;
-        font-size: 12px;
-        max-width: 90vw;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .viewer-close {
-        position: fixed;
-        top: 15px;
-        right: 20px;
-        width: 45px;
-        height: 45px;
-        border: 0;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.15);
-        color: white;
-        font-size: 25px;
-        cursor: pointer;
-    }
-
-    .viewer-close:hover {
-        background: rgba(255,255,255,0.25);
-    }
-
-    /* =========================================================
-       ALLGEMEIN
-       ========================================================= */
-
-    .empty {
-        text-align: center;
-        color: #70757a;
-        margin-top: 45px;
+        height: 48px;
         font-size: 16px;
     }
 
-    .loading {
-        display: inline-flex;
-        align-items: center;
+    .result-title {
+        font-size: 18px;
+    }
+
+    .image-results {
+        grid-template-columns: repeat(2,minmax(0,1fr));
         gap: 8px;
     }
 
-    .spinner {
-        width: 13px;
-        height: 13px;
-        border: 2px solid #ddd;
-        border-top-color: #555;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
+    .image-wrapper {
+        height: 140px;
     }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    .diagnostics {
-        width: min(900px, 94vw);
-        margin: 25px auto;
-        padding: 10px 12px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        color: #70757a;
-        font-size: 11px;
-        display: none;
-    }
-
-    .footer {
-        text-align: center;
-        color: #9aa0a6;
-        font-size: 12px;
-        margin-top: 60px;
-    }
-
-    @media (max-width: 600px) {
-
-        .header {
-            padding-top: 20px;
-        }
-
-        .logo {
-            font-size: 36px;
-        }
-
-        .search-box {
-            height: 48px;
-            font-size: 16px;
-        }
-
-        .result-title {
-            font-size: 18px;
-        }
-
-        .image-results {
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-            gap: 8px;
-        }
-
-        .image-wrapper {
-            height: 140px;
-        }
-
-        .image-info {
-            padding: 7px;
-        }
-    }
+}
 </style>
 </head>
 
@@ -411,10 +379,7 @@
 
 <header class="header">
 
-    <div
-        class="logo"
-        id="logo"
-    >
+    <div class="logo" id="logo">
         TBS Search
     </div>
 
@@ -439,11 +404,6 @@
 
 </header>
 
-
-<!-- =========================================================
-     TABS
-     ========================================================= -->
-
 <nav class="tabs">
 
     <button
@@ -464,26 +424,9 @@
 
 </nav>
 
+<div id="status" class="status"></div>
 
-<div
-    id="status"
-    class="status"
-></div>
-
-
-<!-- =========================================================
-     WEB
-     ========================================================= -->
-
-<main
-    id="webResults"
-    class="results"
-></main>
-
-
-<!-- =========================================================
-     BILDER
-     ========================================================= -->
+<main id="webResults" class="results"></main>
 
 <main
     id="imageResults"
@@ -491,26 +434,13 @@
     style="display:none"
 ></main>
 
-
-<div
-    id="diagnostics"
-    class="diagnostics"
-></div>
-
+<div id="diagnostics" class="diagnostics"></div>
 
 <div class="footer">
     TBS Search
 </div>
 
-
-<!-- =========================================================
-     IMAGE VIEWER
-     ========================================================= -->
-
-<div
-    id="imageViewer"
-    class="image-viewer"
->
+<div id="imageViewer" class="image-viewer">
 
     <button
         id="viewerClose"
@@ -527,27 +457,20 @@
             alt=""
         >
 
-        <div
-            id="viewerCaption"
-            class="viewer-caption"
-        ></div>
+        <div id="viewerCaption" class="viewer-caption"></div>
 
-        <div
-            id="viewerSource"
-            class="viewer-source"
-        ></div>
+        <div id="viewerSource" class="viewer-source"></div>
 
     </div>
 
 </div>
 
-
 <script>
 "use strict";
 
 /* ============================================================
-   TBS SEARCH v6
-   WEB + BILDER
+   TBS SEARCH v7
+   RELEVANZ + WEB + BILDER
    ============================================================ */
 
 const INDEX_ROOT = "data/index";
@@ -557,21 +480,11 @@ const DOCS_ROOT = INDEX_ROOT + "/docs";
 const MAX_RESULTS = 100;
 const MAX_DOCUMENTS_TO_LOAD = 500;
 
-/*
- * Für die Bildersuche werden nur die ersten Suchergebnisse
- * verwendet.
- */
 const MAX_IMAGE_SOURCE_PAGES = 15;
-
-/*
- * Maximale Anzahl Bilder pro Seite.
- */
 const MAX_IMAGES_PER_PAGE = 8;
-
-/*
- * Maximale Gesamtzahl Bilder.
- */
 const MAX_TOTAL_IMAGES = 40;
+
+const MAX_POSTINGS_PER_TERM = 400;
 
 
 /* ============================================================
@@ -580,17 +493,9 @@ const MAX_TOTAL_IMAGES = 40;
 
 const termCache = new Map();
 const documentShardCache = new Map();
-
-/*
- * Cache für bereits analysierte Webseiten.
- *
- * Dadurch wird dieselbe Website während einer Sitzung
- * nicht mehrfach heruntergeladen.
- */
 const pageImageCache = new Map();
 
 let manifest = null;
-
 let searchGeneration = 0;
 
 
@@ -599,7 +504,6 @@ let searchGeneration = 0;
    ============================================================ */
 
 let dbPromise = null;
-
 
 function openDatabase() {
 
@@ -616,37 +520,32 @@ function openDatabase() {
 
         const request =
             indexedDB.open(
-                "TBS_Search_v6",
+                "TBS_Search_v7",
                 1
             );
 
-        request.onupgradeneeded =
-            event => {
+        request.onupgradeneeded = event => {
 
-                const db =
-                    event.target.result;
+            const db = event.target.result;
 
-                if (
-                    !db.objectStoreNames
-                        .contains("cache")
-                ) {
-                    db.createObjectStore(
-                        "cache"
-                    );
-                }
-            };
+            if (!db.objectStoreNames.contains("cache")) {
 
-        request.onsuccess =
-            event => {
-                resolve(
-                    event.target.result
+                db.createObjectStore(
+                    "cache"
                 );
-            };
 
-        request.onerror =
-            () => {
-                resolve(null);
-            };
+            }
+
+        };
+
+        request.onsuccess = event => {
+            resolve(event.target.result);
+        };
+
+        request.onerror = () => {
+            resolve(null);
+        };
+
     });
 
     return dbPromise;
@@ -655,8 +554,7 @@ function openDatabase() {
 
 async function dbGet(key) {
 
-    const db =
-        await openDatabase();
+    const db = await openDatabase();
 
     if (!db) {
         return null;
@@ -680,30 +578,30 @@ async function dbGet(key) {
             const request =
                 store.get(key);
 
-            request.onsuccess =
-                () => {
-                    resolve(
-                        request.result ??
-                        null
-                    );
-                };
+            request.onsuccess = () => {
 
-            request.onerror =
-                () => {
-                    resolve(null);
-                };
+                resolve(
+                    request.result ?? null
+                );
+
+            };
+
+            request.onerror = () => {
+                resolve(null);
+            };
 
         } catch {
             resolve(null);
         }
+
     });
+
 }
 
 
-async function dbSet(key, value) {
+async function dbSet(key,value) {
 
-    const db =
-        await openDatabase();
+    const db = await openDatabase();
 
     if (!db) {
         return;
@@ -729,16 +627,15 @@ async function dbSet(key, value) {
                 key
             );
 
-            transaction.oncomplete =
-                () => resolve();
-
-            transaction.onerror =
-                () => resolve();
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => resolve();
 
         } catch {
             resolve();
         }
+
     });
+
 }
 
 
@@ -748,9 +645,35 @@ async function dbSet(key, value) {
 
 function normalizeWord(word) {
 
-    return word
+    return String(word || "")
         .toLowerCase()
         .trim();
+
+}
+
+
+function tokenizeText(text) {
+
+    return String(text || "")
+        .toLowerCase()
+        .match(/[a-zA-ZÀ-ÿ0-9]{2,}/g) || [];
+
+}
+
+
+function countTerm(tokens,term) {
+
+    let count = 0;
+
+    for (const token of tokens) {
+
+        if (token === term) {
+            count++;
+        }
+
+    }
+
+    return count;
 }
 
 
@@ -764,11 +687,51 @@ function escapeHTML(value) {
     }
 
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+function highlightText(text,terms) {
+
+    let escaped =
+        escapeHTML(text);
+
+    for (const term of terms) {
+
+        if (!term || term.length < 2) {
+            continue;
+        }
+
+        const escapedTerm =
+            escapeHTML(term);
+
+        try {
+
+            escaped =
+                escaped.replace(
+                    new RegExp(
+                        "(" +
+                        escapedTerm.replace(
+                            /[.*+?^${}()|[\]\\]/g,
+                            "\\$&"
+                        ) +
+                        ")",
+                        "gi"
+                    ),
+                    "<mark>$1</mark>"
+                );
+
+        } catch {
+            /* ungültiger Suchbegriff */
+        }
+
+    }
+
+    return escaped;
 }
 
 
@@ -785,7 +748,8 @@ function documentShardName(docId) {
         number % 256
     )
         .toString(16)
-        .padStart(2, "0");
+        .padStart(2,"0");
+
 }
 
 
@@ -809,13 +773,13 @@ async function termShardName(term) {
 
     for (const byte of bytes) {
 
-        hex +=
-            byte
-                .toString(16)
-                .padStart(2, "0");
+        hex += byte
+            .toString(16)
+            .padStart(2,"0");
+
     }
 
-    return hex.substring(0, 2);
+    return hex.substring(0,2);
 }
 
 
@@ -835,6 +799,7 @@ function cacheBust(url) {
             .toString(36)
             .slice(2)
     );
+
 }
 
 
@@ -844,7 +809,7 @@ async function fetchJSON(url) {
         await fetch(
             cacheBust(url),
             {
-                cache: "no-store"
+                cache:"no-store"
             }
         );
 
@@ -854,6 +819,7 @@ async function fetchJSON(url) {
             "HTTP " +
             response.status
         );
+
     }
 
     return response.json();
@@ -866,21 +832,20 @@ async function fetchJSON(url) {
 
 async function loadManifest() {
 
-    const manifestData =
+    const data =
         await fetchJSON(
             INDEX_ROOT +
             "/manifest.json"
         );
 
-    manifest =
-        manifestData;
+    manifest = data;
 
     await dbSet(
         "manifest",
-        manifestData
+        data
     );
 
-    return manifestData;
+    return data;
 }
 
 
@@ -933,15 +898,12 @@ async function loadTermShard(term) {
                 data
             );
 
-        } catch (error) {
-
-            console.warn(
-                "Term-Shard Fehler:",
-                error
-            );
+        } catch {
 
             data = {};
+
         }
+
     }
 
     const result =
@@ -964,14 +926,10 @@ async function loadTermShard(term) {
    DOKUMENT-SHARDS
    ============================================================ */
 
-async function loadDocumentShard(
-    shard
-) {
+async function loadDocumentShard(shard) {
 
     if (
-        documentShardCache.has(
-            shard
-        )
+        documentShardCache.has(shard)
     ) {
         return documentShardCache.get(
             shard
@@ -1001,15 +959,12 @@ async function loadDocumentShard(
                 data
             );
 
-        } catch (error) {
-
-            console.warn(
-                "Dokument-Shard Fehler:",
-                error
-            );
+        } catch {
 
             data = {};
+
         }
+
     }
 
     documentShardCache.set(
@@ -1038,33 +993,23 @@ async function loadDocuments(ids) {
             )
             .map(Number);
 
-    const groups =
-        new Map();
+    const groups = new Map();
 
-    for (
-        const id of limitedIds
-    ) {
+    for (const id of limitedIds) {
 
         const shard =
             documentShardName(id);
 
         if (!groups.has(shard)) {
-
-            groups.set(
-                shard,
-                []
-            );
+            groups.set(shard,[]);
         }
 
         groups
             .get(shard)
             .push(id);
+
     }
 
-    /*
-     * Alle benötigten Shards
-     * parallel laden.
-     */
     const shardPromises =
         [...groups.keys()]
             .map(async shard => {
@@ -1078,6 +1023,7 @@ async function loadDocuments(ids) {
                     shard,
                     data
                 };
+
             });
 
     const shardResults =
@@ -1085,24 +1031,20 @@ async function loadDocuments(ids) {
             shardPromises
         );
 
-    const shardMap =
-        new Map();
+    const shardMap = new Map();
 
-    for (
-        const item of shardResults
-    ) {
+    for (const item of shardResults) {
 
         shardMap.set(
             item.shard,
             item.data
         );
+
     }
 
     const result = [];
 
-    for (
-        const id of limitedIds
-    ) {
+    for (const id of limitedIds) {
 
         const shard =
             documentShardName(id);
@@ -1123,7 +1065,9 @@ async function loadDocuments(ids) {
                 id,
                 ...document
             });
+
         }
+
     }
 
     return result;
@@ -1131,60 +1075,259 @@ async function loadDocuments(ids) {
 
 
 /* ============================================================
-   RANKING
+   RELEVANZ-RANKING
    ============================================================ */
 
 function scoreDocument(
     doc,
-    queryTerms
+    queryTerms,
+    originalQuery,
+    postingSizes
 ) {
 
     const title =
-        normalizeWord(
+        String(
             doc.title || ""
-        );
+        ).toLowerCase();
 
     const description =
-        normalizeWord(
+        String(
             doc.description || ""
-        );
+        ).toLowerCase();
 
     const url =
-        normalizeWord(
+        String(
             doc.url || ""
-        );
+        ).toLowerCase();
+
+    const titleTokens =
+        tokenizeText(title);
+
+    const descriptionTokens =
+        tokenizeText(description);
+
+    const urlTokens =
+        tokenizeText(url);
 
     let score = 0;
+    let matchedTerms = 0;
 
-    for (
-        const term of queryTerms
-    ) {
+    const normalizedQuery =
+        String(
+            originalQuery || ""
+        )
+            .trim()
+            .toLowerCase();
 
-        if (title === term) {
-            score += 100;
+    /*
+     * Einzelne Suchbegriffe bewerten.
+     */
+
+    for (const term of queryTerms) {
+
+        const titleExact =
+            countTerm(
+                titleTokens,
+                term
+            );
+
+        const descriptionExact =
+            countTerm(
+                descriptionTokens,
+                term
+            );
+
+        const urlExact =
+            countTerm(
+                urlTokens,
+                term
+            );
+
+        const titleContains =
+            title.includes(term);
+
+        const descriptionContains =
+            description.includes(term);
+
+        const urlContains =
+            url.includes(term);
+
+        let termScore = 0;
+
+        /*
+         * TITEL
+         */
+
+        if (titleExact > 0) {
+
+            termScore += 120;
+
+            termScore +=
+                Math.min(
+                    titleExact,
+                    3
+                ) * 18;
+
+        } else if (titleContains) {
+
+            termScore += 55;
+
         }
 
-        if (title.includes(term)) {
-            score += 50;
+
+        /*
+         * BESCHREIBUNG
+         */
+
+        if (descriptionExact > 0) {
+
+            termScore += 35;
+
+            termScore +=
+                Math.min(
+                    descriptionExact,
+                    3
+                ) * 6;
+
+        } else if (descriptionContains) {
+
+            termScore += 14;
+
         }
 
-        if (
-            description.includes(term)
-        ) {
-            score += 20;
+
+        /*
+         * URL
+         */
+
+        if (urlExact > 0) {
+
+            termScore += 28;
+
+        } else if (urlContains) {
+
+            termScore += 8;
+
         }
 
-        if (url.includes(term)) {
-            score += 10;
+
+        /*
+         * SELTENHEIT
+         *
+         * Ein Begriff, der nur auf wenigen Seiten
+         * vorkommt, ist informativer.
+         */
+
+        const postingSize =
+            postingSizes.get(term) || 1;
+
+        const totalDocuments =
+            manifest?.documents || 1;
+
+        const rarityBoost =
+            Math.max(
+                0.35,
+                Math.min(
+                    2.5,
+                    Math.log10(
+                        totalDocuments /
+                        Math.max(
+                            1,
+                            postingSize
+                        )
+                    ) + 0.7
+                )
+            );
+
+        termScore *= rarityBoost;
+
+
+        if (termScore > 0) {
+            matchedTerms++;
+            score += termScore;
         }
+
     }
 
-    return score;
+
+    /*
+     * QUERY-COVERAGE
+     *
+     * Eine Seite, die 4/4 Begriffe enthält,
+     * soll klar vor einer Seite mit 1/4 liegen.
+     */
+
+    const coverage =
+        queryTerms.length
+            ? matchedTerms /
+              queryTerms.length
+            : 0;
+
+    score +=
+        coverage * 180;
+
+
+    /*
+     * Bonus für vollständige Abdeckung.
+     */
+
+    if (
+        queryTerms.length > 1 &&
+        matchedTerms === queryTerms.length
+    ) {
+
+        score += 140;
+
+    }
+
+
+    /*
+     * EXAKTE SUCHPHRASE
+     */
+
+    if (
+        normalizedQuery.length >= 3 &&
+        title.includes(normalizedQuery)
+    ) {
+
+        score += 260;
+
+    }
+
+    if (
+        normalizedQuery.length >= 3 &&
+        description.includes(normalizedQuery)
+    ) {
+
+        score += 70;
+
+    }
+
+
+    /*
+     * Kurze, nichtssagende Titel etwas abwerten.
+     */
+
+    if (
+        title.length > 0 &&
+        title.length < 4
+    ) {
+
+        score *= 0.9;
+
+    }
+
+
+    return {
+        score,
+        matchedTerms
+    };
+
 }
 
 
 /* ============================================================
-   NORMALE SUCHE
+   SUCHERGEBNISSE FINDEN
    ============================================================ */
 
 async function searchTerms(
@@ -1196,8 +1339,14 @@ async function searchTerms(
         generation !==
         searchGeneration
     ) {
-        return [];
+
+        return {
+            documents:[],
+            postingSizes:new Map()
+        };
+
     }
+
 
     const postingLists =
         await Promise.all(
@@ -1207,71 +1356,111 @@ async function searchTerms(
             )
         );
 
+
     if (
         generation !==
         searchGeneration
     ) {
-        return [];
+
+        return {
+            documents:[],
+            postingSizes:new Map()
+        };
+
     }
 
+
+    const postingSizes =
+        new Map();
+
+
     for (
-        const list of postingLists
+        let i = 0;
+        i < terms.length;
+        i++
     ) {
+
+        postingSizes.set(
+            terms[i],
+            postingLists[i]?.length || 0
+        );
+
+    }
+
+
+    /*
+     * OR-Suche:
+     *
+     * Eine Seite darf schon dann Kandidat sein,
+     * wenn sie mindestens einen Suchbegriff enthält.
+     *
+     * Das Ranking entscheidet danach,
+     * wie relevant die Seite wirklich ist.
+     */
+
+    const candidateSet =
+        new Set();
+
+
+    /*
+     * Seltene Begriffe werden vollständig betrachtet.
+     * Sehr häufige Begriffe werden begrenzt.
+     */
+
+    for (const list of postingLists) {
 
         if (
             !list ||
             list.length === 0
         ) {
-            return [];
+            continue;
         }
-    }
 
-    /*
-     * Kleinste Liste zuerst.
-     */
-    const sortedLists =
-        [...postingLists]
-            .sort(
-                (a, b) =>
-                    a.length -
-                    b.length
+        const limit =
+            Math.min(
+                list.length,
+                MAX_POSTINGS_PER_TERM
             );
 
-    let candidates =
-        new Set(
-            sortedLists[0]
-        );
 
-    for (
-        let i = 1;
-        i < sortedLists.length;
-        i++
+        for (
+            let i = 0;
+            i < limit;
+            i++
+        ) {
+
+            candidateSet.add(
+                list[i]
+            );
+
+        }
+
+    }
+
+
+    if (
+        candidateSet.size === 0
     ) {
 
-        const current =
-            new Set(
-                sortedLists[i]
-            );
+        return {
+            documents:[],
+            postingSizes
+        };
 
-        candidates =
-            new Set(
-                [...candidates]
-                    .filter(
-                        id =>
-                            current.has(id)
-                    )
-            );
-
-        if (
-            candidates.size === 0
-        ) {
-            return [];
-        }
     }
 
-    return loadDocuments(
-        [...candidates]
-    );
+
+    const documents =
+        await loadDocuments(
+            [...candidateSet]
+        );
+
+
+    return {
+        documents,
+        postingSizes
+    };
+
 }
 
 
@@ -1288,15 +1477,14 @@ async function searchSingleCharacter(
 
     const shards =
         Array.from(
-            { length: 256 },
-            (_, i) =>
-                i.toString(16)
-                    .padStart(2, "0")
+            {length:256},
+            (_,i) =>
+                i
+                    .toString(16)
+                    .padStart(2,"0")
         );
 
-    /*
-     * Parallel laden.
-     */
+
     const shardResults =
         await Promise.all(
             shards.map(
@@ -1317,9 +1505,11 @@ async function searchSingleCharacter(
                     return Object.values(
                         data || {}
                     );
+
                 }
             )
         );
+
 
     if (
         generation !==
@@ -1328,25 +1518,29 @@ async function searchSingleCharacter(
         return [];
     }
 
+
     const needle =
         normalizeWord(term);
 
+
     for (
-        const documents
-        of shardResults
+        const documents of shardResults
     ) {
 
         for (
             const doc of documents
         ) {
 
-            const text = (
-                (doc.title || "") +
-                " " +
-                (doc.description || "") +
-                " " +
-                (doc.url || "")
-            ).toLowerCase();
+            const text =
+                (
+                    (doc.title || "") +
+                    " " +
+                    (doc.description || "") +
+                    " " +
+                    (doc.url || "")
+                )
+                    .toLowerCase();
+
 
             if (
                 text.includes(needle)
@@ -1358,13 +1552,142 @@ async function searchSingleCharacter(
                     result.length >=
                     MAX_RESULTS
                 ) {
+
                     return result;
+
                 }
+
             }
+
         }
+
     }
 
+
     return result;
+
+}
+
+
+/* ============================================================
+   SNIPPET
+   ============================================================ */
+
+function createSnippet(
+    doc,
+    terms
+) {
+
+    const description =
+        String(
+            doc.description || ""
+        ).trim();
+
+    const title =
+        String(
+            doc.title || ""
+        ).trim();
+
+    const url =
+        String(
+            doc.url || ""
+        ).trim();
+
+
+    /*
+     * Zuerst Beschreibung verwenden.
+     */
+
+    if (description) {
+
+        let bestPosition = -1;
+
+        const lower =
+            description.toLowerCase();
+
+
+        for (const term of terms) {
+
+            const position =
+                lower.indexOf(
+                    term.toLowerCase()
+                );
+
+            if (
+                position >= 0 &&
+                (
+                    bestPosition < 0 ||
+                    position < bestPosition
+                )
+            ) {
+
+                bestPosition = position;
+
+            }
+
+        }
+
+
+        if (
+            bestPosition >= 0 &&
+            description.length > 180
+        ) {
+
+            const start =
+                Math.max(
+                    0,
+                    bestPosition - 70
+                );
+
+            const end =
+                Math.min(
+                    description.length,
+                    start + 180
+                );
+
+            let snippet =
+                description.substring(
+                    start,
+                    end
+                );
+
+            if (start > 0) {
+                snippet = "…" + snippet;
+            }
+
+            if (end < description.length) {
+                snippet += "…";
+            }
+
+            return snippet;
+
+        }
+
+
+        return description.substring(
+            0,
+            220
+        ) +
+        (
+            description.length > 220
+                ? "…"
+                : ""
+        );
+
+    }
+
+
+    /*
+     * Falls keine Beschreibung vorhanden ist,
+     * Titel bzw. URL anzeigen.
+     */
+
+    if (title) {
+        return title;
+    }
+
+    return url;
+
 }
 
 
@@ -1373,13 +1696,15 @@ async function searchSingleCharacter(
    ============================================================ */
 
 function renderWebResults(
-    documents
+    documents,
+    terms
 ) {
 
     const element =
         document.getElementById(
             "webResults"
         );
+
 
     if (
         !documents ||
@@ -1392,14 +1717,15 @@ function renderWebResults(
             '</div>';
 
         return;
+
     }
+
 
     const fragment =
         document.createDocumentFragment();
 
-    for (
-        const doc of documents
-    ) {
+
+    for (const doc of documents) {
 
         const article =
             document.createElement(
@@ -1409,20 +1735,27 @@ function renderWebResults(
         article.className =
             "result";
 
+
         const title =
             doc.title ||
             doc.url ||
             "Unbenannte Seite";
 
-        const description =
-            doc.description ||
-            "";
 
         const url =
             doc.url ||
             "#";
 
+
+        const snippet =
+            createSnippet(
+                doc,
+                terms
+            );
+
+
         article.innerHTML = `
+
             <a
                 class="result-title"
                 href="${escapeHTML(url)}"
@@ -1437,40 +1770,43 @@ function renderWebResults(
             </div>
 
             ${
-                description
+                snippet
                     ? `
                         <div class="result-description">
-                            ${escapeHTML(
-                                description
+                            ${highlightText(
+                                snippet,
+                                terms
                             )}
                         </div>
-                      `
+                    `
                     : ""
             }
+
         `;
+
 
         fragment.appendChild(
             article
         );
+
     }
+
 
     element.appendChild(
         fragment
     );
+
 }
 
 
 /* ============================================================
-   BILDER AUS EINER WEBSEITE LESEN
+   BILDER AUS WEBSEITE LESEN
    ============================================================ */
 
 async function extractImagesFromPage(
     pageUrl
 ) {
 
-    /*
-     * Bereits analysiert?
-     */
     if (
         pageImageCache.has(pageUrl)
     ) {
@@ -1478,15 +1814,12 @@ async function extractImagesFromPage(
         return pageImageCache.get(
             pageUrl
         );
+
     }
 
-    /*
-     * Direkter Abruf.
-     *
-     * Funktioniert nur bei Seiten,
-     * die Browser-CORS erlauben.
-     */
+
     let response;
+
 
     try {
 
@@ -1494,18 +1827,13 @@ async function extractImagesFromPage(
             await fetch(
                 pageUrl,
                 {
-                    method: "GET",
-                    redirect: "follow",
-                    credentials: "omit"
+                    method:"GET",
+                    redirect:"follow",
+                    credentials:"omit"
                 }
             );
 
-    } catch (error) {
-
-        console.warn(
-            "Seite wegen CORS nicht lesbar:",
-            pageUrl
-        );
+    } catch {
 
         pageImageCache.set(
             pageUrl,
@@ -1513,7 +1841,9 @@ async function extractImagesFromPage(
         );
 
         return [];
+
     }
+
 
     if (!response.ok) {
 
@@ -1523,16 +1853,16 @@ async function extractImagesFromPage(
         );
 
         return [];
+
     }
+
 
     const contentType =
         response.headers.get(
             "content-type"
         ) || "";
 
-    /*
-     * Nur HTML analysieren.
-     */
+
     if (
         !contentType.includes(
             "text/html"
@@ -1545,9 +1875,12 @@ async function extractImagesFromPage(
         );
 
         return [];
+
     }
 
+
     let html;
+
 
     try {
 
@@ -1562,23 +1895,31 @@ async function extractImagesFromPage(
         );
 
         return [];
+
     }
+
 
     const parser =
         new DOMParser();
 
-    const document =
+
+    const pageDocument =
         parser.parseFromString(
             html,
             "text/html"
         );
 
+
     const imageElements =
-        [...document.querySelectorAll(
-            "img"
-        )];
+        [
+            ...pageDocument.querySelectorAll(
+                "img"
+            )
+        ];
+
 
     const images = [];
+
 
     for (
         const img of imageElements
@@ -1591,14 +1932,12 @@ async function extractImagesFromPage(
             break;
         }
 
-        /*
-         * Verschiedene Bildquellen
-         * unterstützen.
-         */
+
         let src =
             img.getAttribute(
                 "src"
             );
+
 
         if (!src) {
 
@@ -1606,7 +1945,9 @@ async function extractImagesFromPage(
                 img.getAttribute(
                     "data-src"
                 );
+
         }
+
 
         if (!src) {
 
@@ -1614,16 +1955,15 @@ async function extractImagesFromPage(
                 img.getAttribute(
                     "data-lazy-src"
                 );
+
         }
+
 
         if (!src) {
             continue;
         }
 
-        /*
-         * Relative URLs in absolute
-         * URLs umwandeln.
-         */
+
         try {
 
             src =
@@ -1633,12 +1973,12 @@ async function extractImagesFromPage(
                 ).href;
 
         } catch {
+
             continue;
+
         }
 
-        /*
-         * Data-URLs überspringen.
-         */
+
         if (
             src.startsWith(
                 "data:"
@@ -1647,28 +1987,18 @@ async function extractImagesFromPage(
             continue;
         }
 
-        /*
-         * SVG überspringen.
-         */
-        if (
-            src
-                .toLowerCase()
-                .startsWith(
-                    "data:image/svg"
-                )
-        ) {
-            continue;
-        }
 
         const alt =
             img.getAttribute(
                 "alt"
             ) || "";
 
+
         const title =
             img.getAttribute(
                 "title"
             ) || "";
+
 
         images.push({
             src,
@@ -1676,16 +2006,13 @@ async function extractImagesFromPage(
             title,
             pageUrl
         });
+
     }
 
-    /*
-     * Duplikate entfernen.
-     */
-    const unique =
-        [];
 
-    const seen =
-        new Set();
+    const unique = [];
+    const seen = new Set();
+
 
     for (
         const image of images
@@ -1697,6 +2024,7 @@ async function extractImagesFromPage(
             continue;
         }
 
+
         seen.add(
             image.src
         );
@@ -1704,14 +2032,18 @@ async function extractImagesFromPage(
         unique.push(
             image
         );
+
     }
+
 
     pageImageCache.set(
         pageUrl,
         unique
     );
 
+
     return unique;
+
 }
 
 
@@ -1728,7 +2060,9 @@ function renderImageResults(
             "imageResults"
         );
 
+
     container.innerHTML = "";
+
 
     if (
         !images ||
@@ -1741,10 +2075,13 @@ function renderImageResults(
             '</div>';
 
         return;
+
     }
+
 
     const fragment =
         document.createDocumentFragment();
+
 
     for (
         const image of images
@@ -1758,6 +2095,7 @@ function renderImageResults(
         card.className =
             "image-card";
 
+
         const wrapper =
             document.createElement(
                 "div"
@@ -1766,28 +2104,26 @@ function renderImageResults(
         wrapper.className =
             "image-wrapper";
 
+
         const img =
             document.createElement(
                 "img"
             );
 
-        img.loading = "lazy";
 
+        img.loading = "lazy";
         img.decoding = "async";
+
 
         img.src =
             image.src;
+
 
         img.alt =
             image.alt ||
             "Bild";
 
-        /*
-         * Falls das Bild selbst nicht
-         * geladen werden kann:
-         *
-         * Karte entfernen.
-         */
+
         img.addEventListener(
             "error",
             () => {
@@ -1796,13 +2132,15 @@ function renderImageResults(
 
             },
             {
-                once: true
+                once:true
             }
         );
+
 
         wrapper.appendChild(
             img
         );
+
 
         const info =
             document.createElement(
@@ -1812,6 +2150,7 @@ function renderImageResults(
         info.className =
             "image-info";
 
+
         const title =
             document.createElement(
                 "div"
@@ -1820,10 +2159,12 @@ function renderImageResults(
         title.className =
             "image-title";
 
+
         title.textContent =
             image.alt ||
             image.title ||
             "Bild";
+
 
         const source =
             document.createElement(
@@ -1833,26 +2174,19 @@ function renderImageResults(
         source.className =
             "image-source";
 
+
         source.textContent =
             getHostname(
                 image.pageUrl
             );
 
-        info.appendChild(
-            title
-        );
 
-        info.appendChild(
-            source
-        );
+        info.appendChild(title);
+        info.appendChild(source);
 
-        card.appendChild(
-            wrapper
-        );
+        card.appendChild(wrapper);
+        card.appendChild(info);
 
-        card.appendChild(
-            info
-        );
 
         card.addEventListener(
             "click",
@@ -1861,19 +2195,28 @@ function renderImageResults(
                 openImageViewer(
                     image
                 );
+
             }
         );
+
 
         fragment.appendChild(
             card
         );
+
     }
+
 
     container.appendChild(
         fragment
     );
+
 }
 
+
+/* ============================================================
+   HOSTNAME
+   ============================================================ */
 
 function getHostname(url) {
 
@@ -1886,7 +2229,9 @@ function getHostname(url) {
     } catch {
 
         return url;
+
     }
+
 }
 
 
@@ -1904,16 +2249,16 @@ async function searchImages(
             "status"
         );
 
+
     const images = [];
 
-    /*
-     * Nur die Top 5 Suchergebnisse.
-     */
+
     const pages =
         documents.slice(
             0,
             MAX_IMAGE_SOURCE_PAGES
         );
+
 
     if (
         pages.length === 0
@@ -1922,11 +2267,10 @@ async function searchImages(
         renderImageResults([]);
 
         return;
+
     }
 
-    /*
-     * Seiten parallel analysieren.
-     */
+
     const pageResults =
         await Promise.all(
             pages.map(
@@ -1942,9 +2286,11 @@ async function searchImages(
                     return extractImagesFromPage(
                         page.url
                     );
+
                 }
             )
         );
+
 
     if (
         generation !==
@@ -1953,19 +2299,15 @@ async function searchImages(
         return;
     }
 
+
     for (
-        const pageImages
-        of pageResults
+        const pageImages of pageResults
     ) {
 
         for (
             const image of pageImages
         ) {
 
-            /*
-             * Doppelte Bild-URLs
-             * vermeiden.
-             */
             if (
                 images.some(
                     existing =>
@@ -1976,9 +2318,11 @@ async function searchImages(
                 continue;
             }
 
+
             images.push(
                 image
             );
+
 
             if (
                 images.length >=
@@ -1986,7 +2330,9 @@ async function searchImages(
             ) {
                 break;
             }
+
         }
+
 
         if (
             images.length >=
@@ -1994,17 +2340,21 @@ async function searchImages(
         ) {
             break;
         }
+
     }
+
 
     renderImageResults(
         images
     );
+
 
     status.textContent =
         images.length +
         " Bilder aus " +
         pages.length +
         " Suchergebnissen";
+
 }
 
 
@@ -2019,45 +2369,60 @@ async function performSearch(
     const generation =
         ++searchGeneration;
 
+
     const status =
         document.getElementById(
             "status"
         );
+
 
     const diagnostics =
         document.getElementById(
             "diagnostics"
         );
 
+
     const webResults =
         document.getElementById(
             "webResults"
         );
+
 
     const imageResults =
         document.getElementById(
             "imageResults"
         );
 
+
     const startTime =
         performance.now();
 
-    webResults.innerHTML = "";
 
+    webResults.innerHTML = "";
     imageResults.innerHTML = "";
+
 
     if (
         !query.trim()
     ) {
 
-        status.textContent =
-            "";
+        status.textContent = "";
 
         diagnostics.style.display =
             "none";
 
         return;
+
     }
+
+
+    /*
+     * Suchbegriffe normalisieren.
+     *
+     * Einfache Stoppwörter werden NICHT
+     * automatisch entfernt, damit die Suche
+     * nicht unerwartet verändert wird.
+     */
 
     const terms =
         query
@@ -2067,15 +2432,20 @@ async function performSearch(
             .map(normalizeWord)
             .filter(Boolean);
 
+
     status.innerHTML =
         '<span class="loading">' +
         '<span class="spinner"></span>' +
         'Suche...' +
         '</span>';
 
+
     try {
 
         let documents;
+        let postingSizes =
+            new Map();
+
 
         if (
             terms.length === 1 &&
@@ -2090,12 +2460,22 @@ async function performSearch(
 
         } else {
 
-            documents =
+            const searchResult =
                 await searchTerms(
                     terms,
                     generation
                 );
+
+
+            documents =
+                searchResult.documents;
+
+
+            postingSizes =
+                searchResult.postingSizes;
+
         }
+
 
         if (
             generation !==
@@ -2104,38 +2484,107 @@ async function performSearch(
             return;
         }
 
+
         /*
-         * Ranking.
+         * RELEVANZ-RANKING
          */
+
         documents =
             documents
-                .map(doc => ({
-                    doc,
-                    score:
+                .map(doc => {
+
+                    const ranking =
                         scoreDocument(
                             doc,
-                            terms
-                        )
-                }))
-                .sort(
-                    (a, b) =>
-                        b.score -
+                            terms,
+                            query,
+                            postingSizes
+                        );
+
+
+                    return {
+                        doc,
+                        score:
+                            ranking.score,
+                        matchedTerms:
+                            ranking.matchedTerms
+                    };
+
+                })
+                .sort((a,b) => {
+
+                    /*
+                     * Primär nach Relevanz.
+                     */
+
+                    if (
+                        b.score !==
                         a.score
+                    ) {
+
+                        return (
+                            b.score -
+                            a.score
+                        );
+
+                    }
+
+
+                    /*
+                     * Dann nach Anzahl
+                     * erfüllter Begriffe.
+                     */
+
+                    if (
+                        b.matchedTerms !==
+                        a.matchedTerms
+                    ) {
+
+                        return (
+                            b.matchedTerms -
+                            a.matchedTerms
+                        );
+
+                    }
+
+
+                    /*
+                     * Stabiler Tie-Breaker.
+                     */
+
+                    return String(
+                        a.doc.title || ""
+                    ).localeCompare(
+                        String(
+                            b.doc.title || ""
+                        ),
+                        "de"
+                    );
+
+                })
+                .filter(
+                    item =>
+                        item.score > 0
                 )
                 .slice(
                     0,
                     MAX_RESULTS
                 )
                 .map(
-                    item => item.doc
+                    item =>
+                        item.doc
                 );
 
+
         /*
-         * Web-Ergebnisse immer vorbereiten.
+         * WEB-ERGEBNISSE
          */
+
         renderWebResults(
-            documents
+            documents,
+            terms
         );
+
 
         const elapsed =
             Math.round(
@@ -2143,11 +2592,13 @@ async function performSearch(
                 startTime
             );
 
+
         status.textContent =
             documents.length +
             " Treffer · " +
             elapsed +
             " ms";
+
 
         diagnostics.textContent =
             "RAM Term-Cache: " +
@@ -2162,29 +2613,34 @@ async function performSearch(
                 "?"
             );
 
+
         diagnostics.style.display =
             "block";
 
+
         /*
-         * Wenn Bilder aktiv sind,
-         * direkt Bildersuche starten.
+         * BILDER
          */
+
         if (
-            currentTab === "images"
+            currentTab ===
+            "images"
         ) {
 
             await searchImages(
                 documents,
                 generation
             );
+
         }
 
-    } catch (error) {
+    } catch(error) {
 
         console.error(error);
 
         status.textContent =
             "Fehler bei der Suche.";
+
 
         webResults.innerHTML =
             '<div class="empty">' +
@@ -2192,7 +2648,9 @@ async function performSearch(
                 error.message
             ) +
             '</div>';
+
     }
+
 }
 
 
@@ -2209,15 +2667,18 @@ const webTab =
         "webTab"
     );
 
+
 const imagesTab =
     document.getElementById(
         "imagesTab"
     );
 
+
 const webResults =
     document.getElementById(
         "webResults"
     );
+
 
 const imageResults =
     document.getElementById(
@@ -2225,12 +2686,11 @@ const imageResults =
     );
 
 
-function switchTab(
-    tab
-) {
+function switchTab(tab) {
 
     currentTab =
         tab;
+
 
     if (
         tab === "web"
@@ -2251,7 +2711,9 @@ function switchTab(
             "none";
 
         return;
+
     }
+
 
     imagesTab.classList.add(
         "active"
@@ -2267,19 +2729,19 @@ function switchTab(
     imageResults.style.display =
         "grid";
 
-    /*
-     * Wenn bereits eine Suchanfrage
-     * vorhanden ist, Bildersuche starten.
-     */
+
     const query =
         searchInput.value.trim();
+
 
     if (query) {
 
         performSearch(
             query
         );
+
     }
+
 }
 
 
@@ -2308,6 +2770,7 @@ const searchInput =
         "searchInput"
     );
 
+
 const searchButton =
     document.getElementById(
         "searchButton"
@@ -2321,6 +2784,7 @@ searchButton.addEventListener(
         performSearch(
             searchInput.value
         );
+
     }
 );
 
@@ -2338,7 +2802,9 @@ searchInput.addEventListener(
             performSearch(
                 searchInput.value
             );
+
         }
+
     }
 );
 
@@ -2352,15 +2818,18 @@ const imageViewer =
         "imageViewer"
     );
 
+
 const viewerImage =
     document.getElementById(
         "viewerImage"
     );
 
+
 const viewerCaption =
     document.getElementById(
         "viewerCaption"
     );
+
 
 const viewerSource =
     document.getElementById(
@@ -2368,9 +2837,7 @@ const viewerSource =
     );
 
 
-function openImageViewer(
-    image
-) {
+function openImageViewer(image) {
 
     viewerImage.src =
         image.src;
@@ -2379,17 +2846,21 @@ function openImageViewer(
         image.alt ||
         "Bild";
 
+
     viewerCaption.textContent =
         image.alt ||
         image.title ||
         "";
 
+
     viewerSource.textContent =
         image.pageUrl;
+
 
     imageViewer.classList.add(
         "visible"
     );
+
 }
 
 
@@ -2399,13 +2870,8 @@ function closeImageViewer() {
         "visible"
     );
 
-    /*
-     * Bildquelle leeren, damit der
-     * Browser sie nicht unnötig weiter
-     * hält.
-     */
-    viewerImage.src =
-        "";
+    viewerImage.src = "";
+
 }
 
 
@@ -2425,8 +2891,11 @@ imageViewer.addEventListener(
             event.target ===
             imageViewer
         ) {
+
             closeImageViewer();
+
         }
+
     }
 );
 
@@ -2438,8 +2907,11 @@ document.addEventListener(
         if (
             event.key === "Escape"
         ) {
+
             closeImageViewer();
+
         }
+
     }
 );
 
@@ -2454,23 +2926,17 @@ document.getElementById(
     "click",
     () => {
 
-        searchInput.value =
-            "";
+        searchInput.value = "";
 
-        webResults.innerHTML =
-            "";
-
-        imageResults.innerHTML =
-            "";
+        webResults.innerHTML = "";
+        imageResults.innerHTML = "";
 
         document.getElementById(
             "status"
-        ).textContent =
-            "";
+        ).textContent = "";
 
-        switchTab(
-            "web"
-        );
+        switchTab("web");
+
     }
 );
 
@@ -2490,6 +2956,7 @@ function getQueryFromURL() {
         params.get("q") ||
         ""
     );
+
 }
 
 
@@ -2504,6 +2971,7 @@ async function initialize() {
             "status"
         );
 
+
     try {
 
         status.innerHTML =
@@ -2512,13 +2980,9 @@ async function initialize() {
             'Index wird geladen...' +
             '</span>';
 
-        /*
-         * Nur Manifest laden.
-         *
-         * Die eigentlichen Shards werden
-         * erst bei der Suche geladen.
-         */
+
         await loadManifest();
+
 
         status.textContent =
             "Bereit · " +
@@ -2528,8 +2992,10 @@ async function initialize() {
             ) +
             " Dokumente";
 
+
         const query =
             getQueryFromURL();
+
 
         if (query) {
 
@@ -2539,22 +3005,28 @@ async function initialize() {
             await performSearch(
                 query
             );
+
         }
 
-    } catch (error) {
+    } catch(error) {
 
         console.error(error);
 
         status.textContent =
             "Index konnte nicht geladen werden.";
 
-        webResults.innerHTML =
+
+        document.getElementById(
+            "webResults"
+        ).innerHTML =
             '<div class="empty">' +
             escapeHTML(
                 error.message
             ) +
             '</div>';
+
     }
+
 }
 
 
