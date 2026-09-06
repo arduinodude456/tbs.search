@@ -1,1319 +1,520 @@
 import json
 import os
-import random
+import re
 import time
+import hashlib
 from collections import deque
-from datetime import datetime, timezone
-from urllib import robotparser
-from urllib.parse import urldefrag, urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urldefrag, parse_qsl, urlencode
+from urllib.robotparser import RobotFileParser
 
 import requests
 from bs4 import BeautifulSoup
 
 
 # ============================================================
-# KONFIGURATION
+# CONFIG
 # ============================================================
 
-# Zusätzliche feste Startseiten
+DATA_DIR = "data"
+PAGES_DIR = os.path.join(DATA_DIR, "pages")
+
 START_URLS = [
-    "https://dmoz.kodbel.com"
+    "https://dmoz.kodbel.com/"
 ]
 
-# Wiby als Seed-Quelle
-WIBY_SURPRISE_URL = "https://wiby.me/"
-
-# Wie viele zufällige Wiby-Seeds pro Lauf?
-WIBY_SEEDS_PER_RUN = 5
-
-# Maximale Anzahl Seiten, die dieser Lauf verarbeitet
 MAX_PAGES_PER_RUN = 1000
+MAX_DEPTH = 4
 
-# Maximale Linktiefe
-MAX_DEPTH = 6
-
-# Pause zwischen Requests
-REQUEST_DELAY = 1.0
-
-# Timeout
 REQUEST_TIMEOUT = 20
+ROBOTS_TIMEOUT = 10
 
-# Index
-INDEX_FILE = "sites.json"
+HOST_DELAY = 1.5
 
-# User-Agent
 USER_AGENT = (
-    "TBS-SearchBot/1.0 "
-    "(compatible; "
-    "+https://github.com/arduinodude456/tbs.search)"
+    "TBS-SearchBot/2.0 "
+    "(compatible; +https://github.com/arduinodude456/tbs.search)"
 )
+
+BLOCKED_EXTENSIONS = {
+    ".jpg", ".jpeg", ".png", ".gif", ".webp",
+    ".mp4", ".webm", ".mp3", ".wav",
+    ".zip", ".rar", ".7z", ".tar", ".gz",
+    ".exe", ".apk", ".iso"
+}
+
+TRACKING_PARAMETERS = {
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+    "fbclid",
+    "gclid"
+}
 
 
 # ============================================================
-# HTTP SESSION
+# URL HANDLING
+# ============================================================
+
+def clean_url(url):
+    if not url:
+        return None
+
+    url = url.strip()
+
+    # Markdown-Link:
+    # [https://example.com](https://example.com/)
+    match = re.match(r"^\[[^\]]+\]\((https?://[^)]+)\)$", url)
+    if match:
+        url = match.group(1)
+
+    # Falls versehentlich doppelt eingefügt
+    while url.startswith("https://https://"):
+        url = "https://" + url[len("https://https://"):]
+
+    while url.startswith("http://http://"):
+        url = "http://" + url[len("http://http://"):]
+
+    if url.startswith("www."):
+        url = "https://" + url
+
+    return url
+
+
+def normalize_url(url, base=None):
+    if not url:
+        return None
+
+    url = clean_url(url)
+
+    if base:
+        url = urljoin(base, url)
+
+    url, _ = urldefrag(url)
+
+    parsed = urlparse(url)
+
+    if parsed.scheme not in ("http", "https"):
+        return None
+
+    if not parsed.netloc:
+        return None
+
+    host = parsed.hostname.lower()
+
+    if parsed.port:
+        try:
+            if not (
+                (parsed.scheme == "http" and parsed.port == 80)
+                or
+                (parsed.scheme == "https" and parsed.port == 443)
+            ):
+                host += f":{parsed.port}"
+        except ValueError:
+            return None
+
+    query = []
+
+    for key, value in parse_qsl(parsed.query, keep_blank_values=True):
+        if key.lower() not in TRACKING_PARAMETERS:
+            query.append((key, value))
+
+    query_string = urlencode(query)
+
+    path = parsed.path or "/"
+
+    return (
+        f"{parsed.scheme}://{host}"
+        f"{path}"
+        + (f"?{query_string}" if query_string else "")
+    )
+
+
+def valid_page_url(url):
+    parsed = urlparse(url)
+
+    path = parsed.path.lower()
+
+    for ext in BLOCKED_EXTENSIONS:
+        if path.endswith(ext):
+            return False
+
+    return True
+
+
+# ============================================================
+# STORAGE
+# ============================================================
+
+def url_id(url):
+    return hashlib.sha256(url.encode("utf-8")).hexdigest()
+
+
+def shard_for_url(url):
+    return url_id(url)[:2]
+
+
+def page_file(url):
+    shard = shard_for_url(url)
+    return os.path.join(PAGES_DIR, f"{shard}.jsonl")
+
+
+def load_pages():
+    pages = {}
+
+    if not os.path.isdir(PAGES_DIR):
+        return pages
+
+    for filename in os.listdir(PAGES_DIR):
+        if not filename.endswith(".jsonl"):
+            continue
+
+        path = os.path.join(PAGES_DIR, filename)
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+
+                    if not line:
+                        continue
+
+                    try:
+                        page = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+
+                    url = page.get("url")
+
+                    if url:
+                        pages[url] = page
+
+        except OSError:
+            continue
+
+    return pages
+
+
+def save_pages(pages):
+    os.makedirs(PAGES_DIR, exist_ok=True)
+
+    shards = {}
+
+    for page in pages.values():
+        url = page.get("url")
+
+        if not url:
+            continue
+
+        shard = shard_for_url(url)
+
+        if shard not in shards:
+            shards[shard] = []
+
+        shards[shard].append(page)
+
+    for shard, entries in shards.items():
+        path = os.path.join(PAGES_DIR, f"{shard}.jsonl")
+        tmp = path + ".tmp"
+
+        with open(tmp, "w", encoding="utf-8") as f:
+            for page in entries:
+                f.write(
+                    json.dumps(
+                        page,
+                        ensure_ascii=False,
+                        separators=(",", ":")
+                    )
+                    + "\n"
+                )
+
+        os.replace(tmp, path)
+
+
+# ============================================================
+# ROBOTS
+# ============================================================
+
+robots_cache = {}
+
+
+def get_robots(url):
+    parsed = urlparse(url)
+
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    robots_url = origin + "/robots.txt"
+
+    if origin in robots_cache:
+        return robots_cache[origin]
+
+    rp = RobotFileParser()
+    rp.set_url(robots_url)
+
+    try:
+        response = requests.get(
+            robots_url,
+            headers={"User-Agent": USER_AGENT},
+            timeout=ROBOTS_TIMEOUT
+        )
+
+        if response.status_code == 404:
+            robots_cache[origin] = None
+            return None
+
+        if response.status_code >= 400:
+            robots_cache[origin] = False
+            return False
+
+        rp.parse(response.text.splitlines())
+
+        robots_cache[origin] = rp
+
+        return rp
+
+    except requests.RequestException:
+        robots_cache[origin] = False
+        return False
+
+
+def allowed_by_robots(url):
+    rp = get_robots(url)
+
+    if rp is None:
+        return True
+
+    if rp is False:
+        return False
+
+    return rp.can_fetch(USER_AGENT, url)
+
+
+# ============================================================
+# HTTP
 # ============================================================
 
 session = requests.Session()
 
 session.headers.update({
     "User-Agent": USER_AGENT,
-    "Accept": (
-        "text/html,"
-        "application/xhtml+xml,"
-        "application/xml;q=0.9,"
-        "*/*;q=0.8"
-    )
+    "Accept": "text/html,application/xhtml+xml"
 })
 
 
-# ============================================================
-# ROBOTS CACHE
-# ============================================================
-
-robots_cache = {}
+last_request = {}
 
 
-# ============================================================
-# STATISTIK
-# ============================================================
+def host_delay(url):
+    host = urlparse(url).netloc
 
-stats = {
-    "processed": 0,
-    "updated": 0,
-    "unchanged": 0,
-    "errors": 0,
-    "robots": 0,
-    "forbidden": 0,
-    "rate_limited": 0,
-    "discovered": 0,
-    "wiby_seeds": 0,
-}
+    now = time.time()
+    previous = last_request.get(host)
+
+    if previous:
+        wait = HOST_DELAY - (now - previous)
+
+        if wait > 0:
+            time.sleep(wait)
+
+    last_request[host] = time.time()
 
 
 # ============================================================
-# ZEIT
+# PAGE PARSING
 # ============================================================
 
-def utc_now():
+def parse_page(url, response, old=None):
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    return datetime.now(
-        timezone.utc
-    ).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
-
-
-# ============================================================
-# URL NORMALISIERUNG
-# ============================================================
-
-def normalize_url(url):
-
-    if not url:
-        return None
-
-    try:
-
-        url, _ = urldefrag(url)
-
-        parsed = urlparse(url)
-
-        if parsed.scheme not in (
-            "http",
-            "https"
-        ):
-            return None
-
-        if not parsed.hostname:
-            return None
-
-        hostname = parsed.hostname.lower()
-
-        # Standardports entfernen
-        if (
-            (parsed.scheme == "http" and parsed.port == 80)
-            or
-            (parsed.scheme == "https" and parsed.port == 443)
-        ):
-            netloc = hostname
-        else:
-            netloc = parsed.netloc.lower()
-
-        result = (
-            parsed.scheme.lower()
-            + "://"
-            + netloc
-            + parsed.path
-        )
-
-        if parsed.query:
-            result += "?" + parsed.query
-
-        return result
-
-    except Exception:
-
-        return None
-
-
-# ============================================================
-# ROBOTS.TXT
-# ============================================================
-
-def get_robots_parser(url):
-
-    parsed = urlparse(url)
-
-    origin = (
-        parsed.scheme
-        + "://"
-        + parsed.netloc
-    )
-
-    robots_url = origin + "/robots.txt"
-
-    if origin in robots_cache:
-        return robots_cache[origin]
-
-
-    try:
-
-        response = session.get(
-            robots_url,
-            timeout=REQUEST_TIMEOUT
-        )
-
-
-        # ----------------------------------------------------
-        # KEINE ROBOTS.TXT
-        # ----------------------------------------------------
-
-        if response.status_code == 404:
-
-            parser = robotparser.RobotFileParser()
-
-            parser.set_url(
-                robots_url
-            )
-
-            # Keine Regeln
-            parser.parse([])
-
-            robots_cache[origin] = parser
-
-            print(
-                "Keine robots.txt:",
-                origin
-            )
-
-            return parser
-
-
-        # ----------------------------------------------------
-        # SERVERFEHLER
-        # ----------------------------------------------------
-
-        if response.status_code >= 500:
-
-            print(
-                "robots.txt momentan nicht erreichbar:",
-                robots_url,
-                response.status_code
-            )
-
-            robots_cache[origin] = None
-
-            return None
-
-
-        # ----------------------------------------------------
-        # SONSTIGE FEHLER
-        # ----------------------------------------------------
-
-        if response.status_code >= 400:
-
-            print(
-                "robots.txt HTTP-Fehler:",
-                robots_url,
-                response.status_code
-            )
-
-            robots_cache[origin] = None
-
-            return None
-
-
-        # ----------------------------------------------------
-        # ROBOTS PARSEN
-        # ----------------------------------------------------
-
-        parser = robotparser.RobotFileParser()
-
-        parser.set_url(
-            robots_url
-        )
-
-        parser.parse(
-            response.text.splitlines()
-        )
-
-        robots_cache[origin] = parser
-
-        return parser
-
-
-    except requests.RequestException as error:
-
-        print(
-            "robots.txt Fehler:",
-            robots_url
-        )
-
-        print(error)
-
-        robots_cache[origin] = None
-
-        return None
-
-
-def can_fetch(url):
-
-    parser = get_robots_parser(url)
-
-    if parser is None:
-        return False
-
-    try:
-
-        allowed = parser.can_fetch(
-            USER_AGENT,
-            url
-        )
-
-        if not allowed:
-
-            print(
-                "ROBOTS BLOCK:",
-                url
-            )
-
-        return allowed
-
-    except Exception:
-
-        return False
-
-
-# ============================================================
-# WIBY SURPRISE
-# ============================================================
-
-WIBY_SURPRISE_URL = "https://wiby.me/surprise/"
-
-
-def get_wiby_surprise():
-    try:
-        response = session.get(
-            WIBY_SURPRISE_URL,
-            headers={"User-Agent": USER_AGENT},
-            timeout=REQUEST_TIMEOUT,
-            allow_redirects=True,
-        )
-
-        print(f"Wiby Surprise HTTP: {response.status_code}")
-        print(f"Wiby Ziel: {response.url}")
-
-        if response.status_code != 200:
-            print("Wiby Surprise konnte nicht abgerufen werden.")
-            return None
-
-        final_url = response.url
-
-        if not final_url or final_url.rstrip("/") == WIBY_SURPRISE_URL.rstrip("/"):
-            print("Wiby Surprise hat keine Zielseite geliefert.")
-            return None
-
-        parsed = urlparse(final_url)
-
-        if parsed.scheme not in ("http", "https"):
-            print("Wiby: Ungültiges URL-Schema.")
-            return None
-
-        print(f"Wiby Surprise Seed: {final_url}")
-        return final_url
-
-    except requests.RequestException as e:
-        print(f"Wiby Fehler: {e}")
-        return None
-
-def get_wiby_seeds():
-
-    seeds = set()
-
-    print()
-    print(
-        "Hole Wiby-Surprise-Seeds..."
-    )
-
-
-    attempts = 0
-
-    max_attempts = max(
-        WIBY_SEEDS_PER_RUN * 3,
-        3
-    )
-
-
-    while (
-        len(seeds)
-        < WIBY_SEEDS_PER_RUN
-        and
-        attempts
-        < max_attempts
-    ):
-
-        attempts += 1
-
-        print(
-            f"Wiby Versuch "
-            f"{attempts}/{max_attempts}"
-        )
-
-
-        seed = get_wiby_surprise()
-
-
-        if seed:
-
-            if seed not in seeds:
-
-                seeds.add(
-                    seed
-                )
-
-                stats[
-                    "wiby_seeds"
-                ] += 1
-
-
-        time.sleep(
-            REQUEST_DELAY
-        )
-
-
-    print()
-    print(
-        "Wiby Seeds gefunden:",
-        len(seeds)
-    )
-
-
-    return list(seeds)
-
-
-# ============================================================
-# INDEX LADEN
-# ============================================================
-
-def load_index():
-
-    if not os.path.exists(
-        INDEX_FILE
-    ):
-
-        print(
-            "Noch keine sites.json vorhanden."
-        )
-
-        return {
-            "version": 4,
-            "generated": "",
-            "pages": []
-        }
-
-
-    try:
-
-        with open(
-            INDEX_FILE,
-            "r",
-            encoding="utf-8"
-        ) as file:
-
-            data = json.load(file)
-
-
-        if not isinstance(
-            data,
-            dict
-        ):
-
-            raise ValueError(
-                "sites.json ist kein Objekt."
-            )
-
-
-        if not isinstance(
-            data.get("pages"),
-            list
-        ):
-
-            data["pages"] = []
-
-
-        return data
-
-
-    except Exception as error:
-
-        print(
-            "Fehler beim Laden von sites.json:"
-        )
-
-        print(error)
-
-        raise
-
-
-# ============================================================
-# INDEX MAP
-# ============================================================
-
-def build_page_map(data):
-
-    page_map = {}
-
-    for page in data.get(
-        "pages",
-        []
-    ):
-
-        if not isinstance(
-            page,
-            dict
-        ):
-            continue
-
-        url = normalize_url(
-            page.get("url")
-        )
-
-        if not url:
-            continue
-
-        page["url"] = url
-
-        page_map[url] = page
-
-
-    return page_map
-
-
-# ============================================================
-# CACHE HEADERS
-# ============================================================
-
-def get_cache_headers(
-    old_page
-):
-
-    headers = {}
-
-    if not old_page:
-        return headers
-
-
-    etag = old_page.get(
-        "etag"
-    )
-
-    if etag:
-
-        headers[
-            "If-None-Match"
-        ] = etag
-
-
-    last_modified = old_page.get(
-        "last_modified"
-    )
-
-    if last_modified:
-
-        headers[
-            "If-Modified-Since"
-        ] = last_modified
-
-
-    return headers
-
-
-# ============================================================
-# HTTP REQUEST
-# ============================================================
-
-def fetch_page(
-    url,
-    old_page=None
-):
-
-    # --------------------------------------------------------
-    # ROBOTS
-    # --------------------------------------------------------
-
-    if not can_fetch(url):
-
-        stats["robots"] += 1
-
-        return {
-            "status": "robots"
-        }
-
-
-    headers = get_cache_headers(
-        old_page
-    )
-
-
-    try:
-
-        response = session.get(
-            url,
-            headers=headers,
-            timeout=REQUEST_TIMEOUT,
-            allow_redirects=True
-        )
-
-
-    except requests.RequestException as error:
-
-        print(
-            "Request-Fehler:",
-            url
-        )
-
-        print(error)
-
-        return {
-            "status": "error"
-        }
-
-
-    # --------------------------------------------------------
-    # 304
-    # --------------------------------------------------------
-
-    if response.status_code == 304:
-
-        print(
-            "304 Not Modified:",
-            url
-        )
-
-        return {
-            "status": "not_modified"
-        }
-
-
-    # --------------------------------------------------------
-    # 429
-    # --------------------------------------------------------
-
-    if response.status_code == 429:
-
-        print(
-            "429 Too Many Requests:",
-            url
-        )
-
-        retry_after = response.headers.get(
-            "Retry-After"
-        )
-
-        if retry_after:
-
-            print(
-                "Retry-After:",
-                retry_after
-            )
-
-        stats[
-            "rate_limited"
-        ] += 1
-
-        return {
-            "status": "rate_limited"
-        }
-
-
-    # --------------------------------------------------------
-    # 403
-    # --------------------------------------------------------
-
-    if response.status_code == 403:
-
-        print(
-            "403 Forbidden:",
-            url
-        )
-
-        stats[
-            "forbidden"
-        ] += 1
-
-        return {
-            "status": "forbidden"
-        }
-
-
-    # --------------------------------------------------------
-    # SONSTIGE HTTP-FEHLER
-    # --------------------------------------------------------
-
-    if response.status_code >= 400:
-
-        print(
-            f"HTTP {response.status_code}:",
-            url
-        )
-
-        return {
-            "status": "error"
-        }
-
-
-    # --------------------------------------------------------
-    # CONTENT TYPE
-    # --------------------------------------------------------
-
-    content_type = response.headers.get(
-        "Content-Type",
-        ""
-    ).lower()
-
-
-    if "text/html" not in content_type:
-
-        print(
-            "Nicht-HTML übersprungen:",
-            url
-        )
-
-        return {
-            "status": "not_html"
-        }
-
-
-    # --------------------------------------------------------
-    # FINALE URL
-    # --------------------------------------------------------
-
-    final_url = normalize_url(
-        response.url
-    )
-
-    if not final_url:
-
-        return {
-            "status": "error"
-        }
-
-
-    return {
-        "status": "ok",
-        "url": final_url,
-        "html": response.text,
-        "etag": response.headers.get(
-            "ETag"
-        ),
-        "last_modified": response.headers.get(
-            "Last-Modified"
-        )
-    }
-
-
-# ============================================================
-# HTML PARSEN
-# ============================================================
-
-def clean_text(
-    text
-):
-
-    return " ".join(
-        text.split()
-    ).strip()
-
-
-def parse_page(
-    url,
-    html
-):
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-
-    # --------------------------------------------------------
-    # Unbrauchbare Elemente entfernen
-    # --------------------------------------------------------
-
-    for element in soup.find_all([
+    for element in soup([
         "script",
         "style",
         "noscript",
-        "svg",
-        "canvas",
-        "iframe",
-        "template"
+        "svg"
     ]):
-
         element.decompose()
-
-
-    # --------------------------------------------------------
-    # TITLE
-    # --------------------------------------------------------
 
     title = ""
 
     if soup.title:
-
-        title = clean_text(
-            soup.title.get_text(
-                " ",
-                strip=True
-            )
-        )
-
-
-    # --------------------------------------------------------
-    # DESCRIPTION
-    # --------------------------------------------------------
+        title = soup.title.get_text(" ", strip=True)
 
     description = ""
 
-    tag = soup.find(
+    meta = soup.find(
         "meta",
-        attrs={
-            "name": "description"
-        }
+        attrs={"name": re.compile("^description$", re.I)}
     )
 
-    if tag:
-
-        description = clean_text(
-            tag.get(
-                "content",
-                ""
-            )
-        )
-
-
-    # --------------------------------------------------------
-    # KEYWORDS
-    # --------------------------------------------------------
-
-    keywords = ""
-
-    tag = soup.find(
-        "meta",
-        attrs={
-            "name": "keywords"
-        }
-    )
-
-    if tag:
-
-        keywords = clean_text(
-            tag.get(
-                "content",
-                ""
-            )
-        )
-
-
-    # --------------------------------------------------------
-    # HEADINGS
-    # --------------------------------------------------------
+    if meta:
+        description = meta.get("content", "").strip()
 
     headings = []
 
-    for heading in soup.find_all([
-        "h1",
-        "h2",
-        "h3"
-    ]):
-
-        text = clean_text(
-            heading.get_text(
-                " ",
-                strip=True
-            )
-        )
+    for heading in soup.find_all(["h1", "h2", "h3"]):
+        text = heading.get_text(" ", strip=True)
 
         if text:
+            headings.append(text)
 
-            headings.append(
-                text
-            )
+    text = soup.get_text(" ", strip=True)
 
+    # Begrenze einzelne Dokumente
+    text = re.sub(r"\s+", " ", text)
 
-    # --------------------------------------------------------
-    # TEXT
-    # --------------------------------------------------------
+    if len(text) > 200_000:
+        text = text[:200_000]
 
-    text = clean_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
+    links = []
 
+    for a in soup.find_all("a", href=True):
+        target = normalize_url(a["href"], url)
 
-    # Maximale Indexgröße
-    text = text[:50000]
-
-
-    # --------------------------------------------------------
-    # LINKS
-    # --------------------------------------------------------
-
-    links = set()
-
-    for anchor in soup.find_all(
-        "a",
-        href=True
-    ):
-
-        href = anchor.get(
-            "href"
-        )
-
-        absolute = normalize_url(
-            urljoin(
-                url,
-                href
-            )
-        )
-
-        if not absolute:
+        if not target:
             continue
 
-        links.add(
-            absolute
-        )
+        if not valid_page_url(target):
+            continue
 
+        links.append(target)
 
     return {
         "url": url,
-        "title": title,
-        "description": description,
-        "keywords": keywords,
-        "headings": headings,
+        "title": title[:1000],
+        "description": description[:3000],
+        "headings": headings[:100],
         "text": text,
-        "links": list(links)
+        "links": list(dict.fromkeys(links)),
+        "etag": response.headers.get("ETag"),
+        "last_modified": response.headers.get("Last-Modified"),
+        "checked": int(time.time()),
+        "indexed": old.get("indexed") if old else int(time.time()),
+        "updated": int(time.time())
     }
 
 
 # ============================================================
-# SEITE VERARBEITEN
+# CRAWLER
 # ============================================================
 
-def process_page(
-    page_map,
-    url
-):
+def crawl(start_urls):
+    pages = load_pages()
 
-    old_page = page_map.get(
-        url
-    )
-
-
-    result = fetch_page(
-        url,
-        old_page
-    )
-
-
-    status = result[
-        "status"
-    ]
-
-
-    # --------------------------------------------------------
-    # 304
-    # --------------------------------------------------------
-
-    if status == "not_modified":
-
-        if old_page:
-
-            old_page[
-                "checked"
-            ] = utc_now()
-
-        stats[
-            "unchanged"
-        ] += 1
-
-        return []
-
-
-    # --------------------------------------------------------
-    # FEHLER
-    # --------------------------------------------------------
-
-    if status != "ok":
-
-        stats[
-            "errors"
-        ] += 1
-
-        return []
-
-
-    # --------------------------------------------------------
-    # PARSEN
-    # --------------------------------------------------------
-
-
-    final_url = result[
-        "url"
-    ]
-
-
-    parsed = parse_page(
-        final_url,
-        result["html"]
-    )
-
-
-    now = utc_now()
-
-
-    # --------------------------------------------------------
-    # Metadaten
-    # --------------------------------------------------------
-
-    if old_page:
-
-        indexed = old_page.get(
-            "indexed",
-            now
-        )
-
-    else:
-
-        indexed = now
-
-
-    parsed[
-        "indexed"
-    ] = indexed
-
-    parsed[
-        "updated"
-    ] = now
-
-    parsed[
-        "checked"
-    ] = now
-
-    parsed[
-        "etag"
-    ] = result.get(
-        "etag"
-    )
-
-    parsed[
-        "last_modified"
-    ] = result.get(
-        "last_modified"
-    )
-
-
-    # Links nicht im Index speichern
-    links = parsed.pop(
-        "links",
-        []
-    )
-
-
-    page_map[
-        final_url
-    ] = parsed
-
-
-    # Redirect bereinigen
-
-    if (
-        old_page
-        and final_url != url
-        and url in page_map
-    ):
-
-        del page_map[url]
-
-
-    stats[
-        "updated"
-    ] += 1
-
-
-    print(
-        "Indexiert:",
-        final_url
-    )
-
-
-    return links
-
-
-# ============================================================
-# INDEX SPEICHERN
-# ============================================================
-
-def save_index(
-    data,
-    page_map
-):
-
-    data[
-        "version"
-    ] = 4
-
-    data[
-        "generated"
-    ] = utc_now()
-
-    data[
-        "pages"
-    ] = list(
-        page_map.values()
-    )
-
-
-    temporary_file = (
-        INDEX_FILE
-        + ".tmp"
-    )
-
-
-    with open(
-        temporary_file,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            data,
-            file,
-            ensure_ascii=False,
-            indent=2
-        )
-
-
-    os.replace(
-        temporary_file,
-        INDEX_FILE
-    )
-
-
-# ============================================================
-# CRAWL
-# ============================================================
-
-def crawl():
-
-    print()
-    print(
-        "========================================"
-    )
-
-    print(
-        "TBS Search Crawler v4"
-    )
-
-    print(
-        "Incremental + Wiby Surprise"
-    )
-
-    print(
-        "========================================"
-    )
-
-
-    # --------------------------------------------------------
-    # Index
-    # --------------------------------------------------------
-
-    data = load_index()
-
-    page_map = build_page_map(
-        data
-    )
-
-
-    print(
-        "Bereits indexiert:",
-        len(page_map)
-    )
-
-
-    # --------------------------------------------------------
-    # Queue
-    # --------------------------------------------------------
+    print(f"Vorhandener Index: {len(pages)} Seiten")
 
     queue = deque()
 
-    queued = set()
+    seen = set()
 
+    for url in start_urls:
+        normalized = normalize_url(url)
 
-    # --------------------------------------------------------
-    # Feste Startseiten
-    # --------------------------------------------------------
+        if normalized:
+            queue.append((normalized, 0))
 
-    for start_url in START_URLS:
+    processed = 0
 
-        url = normalize_url(
-            start_url
-        )
-
-        if not url:
-            continue
-
-        if url in queued:
-            continue
-
-        queue.append(
-            (
-                url,
-                0
-            )
-        )
-
-        queued.add(
-            url
-        )
-
-
-    # --------------------------------------------------------
-    # Wiby Seeds
-    # --------------------------------------------------------
-
-    wiby_seeds = get_wiby_seeds()
-
-
-    for seed in wiby_seeds:
-
-        if seed in queued:
-            continue
-
-        queue.append(
-            (
-                seed,
-                0
-            )
-        )
-
-        queued.add(
-            seed
-        )
-
-
-    print()
-    print(
-        "Seeds insgesamt:",
-        len(queue)
-    )
-
-
-    # --------------------------------------------------------
-    # CRAWL
-    # --------------------------------------------------------
-
-    while queue:
+    while queue and processed < MAX_PAGES_PER_RUN:
 
         url, depth = queue.popleft()
 
-
-        if stats[
-            "processed"
-        ] >= MAX_PAGES_PER_RUN:
-
-            print()
-            print(
-                "MAX_PAGES_PER_RUN erreicht."
-            )
-
-            break
-
-
-        stats[
-            "processed"
-        ] += 1
-
-
-        print()
-        print(
-            "----------------------------------------"
-        )
-
-        print(
-            f"["
-            f"{stats['processed']}/"
-            f"{MAX_PAGES_PER_RUN}"
-            f"] "
-            f"Depth={depth}"
-        )
-
-        print(
-            url
-        )
-
-
-        links = process_page(
-            page_map,
-            url
-        )
-
-
-        # ----------------------------------------------------
-        # Tiefe erreicht
-        # ----------------------------------------------------
-
-        if depth >= MAX_DEPTH:
-
-            time.sleep(
-                REQUEST_DELAY
-            )
-
+        if url in seen:
             continue
 
+        seen.add(url)
 
-        # ----------------------------------------------------
-        # Neue Links
-        # ----------------------------------------------------
+        if depth > MAX_DEPTH:
+            continue
 
-        for link in links:
+        if not valid_page_url(url):
+            continue
 
-            if link in queued:
+        if not allowed_by_robots(url):
+            print(f"robots.txt blockiert: {url}")
+            continue
+
+        old = pages.get(url)
+
+        headers = {}
+
+        if old:
+            if old.get("etag"):
+                headers["If-None-Match"] = old["etag"]
+
+            if old.get("last_modified"):
+                headers["If-Modified-Since"] = old["last_modified"]
+
+        host_delay(url)
+
+        print(
+            f"[{processed + 1}/{MAX_PAGES_PER_RUN}] "
+            f"Depth={depth} {url}"
+        )
+
+        try:
+            response = session.get(
+                url,
+                headers=headers,
+                timeout=REQUEST_TIMEOUT,
+                allow_redirects=True
+            )
+
+        except requests.RequestException as e:
+            print(f"HTTP-Fehler: {e}")
+            continue
+
+        if response.status_code == 304:
+            if old:
+                old["checked"] = int(time.time())
+                pages[url] = old
+
+            print("304 - unverändert")
+            processed += 1
+            continue
+
+        if response.status_code in (403, 429):
+            print(f"HTTP {response.status_code}")
+            continue
+
+        if response.status_code >= 500:
+            print(f"Serverfehler {response.status_code}")
+            continue
+
+        if response.status_code != 200:
+            print(f"HTTP {response.status_code}")
+            continue
+
+        content_type = response.headers.get(
+            "Content-Type",
+            ""
+        ).lower()
+
+        if "text/html" not in content_type:
+            continue
+
+        final_url = normalize_url(response.url)
+
+        if not final_url:
+            continue
+
+        try:
+            page = parse_page(
+                final_url,
+                response,
+                old
+            )
+        except Exception as e:
+            print(f"Parsing-Fehler: {e}")
+            continue
+
+        pages[final_url] = page
+
+        processed += 1
+
+        for link in page["links"]:
+
+            if link in seen:
                 continue
-
-
-            # Bereits indexierte URLs müssen nicht
-            # als neuer Crawl eingeplant werden.
-            #
-            # Sie bleiben im Index und werden bei
-            # zukünftigen Läufen über ETag /
-            # Last-Modified aktualisiert.
-
-            if link in page_map:
-                continue
-
 
             queue.append(
                 (
@@ -1322,109 +523,15 @@ def crawl():
                 )
             )
 
-            queued.add(
-                link
-            )
-
-            stats[
-                "discovered"
-            ] += 1
-
-
-        time.sleep(
-            REQUEST_DELAY
-        )
-
-
-    # --------------------------------------------------------
-    # Speichern
-    # --------------------------------------------------------
-
-    save_index(
-        data,
-        page_map
-    )
-
-
-    # --------------------------------------------------------
-    # Statistik
-    # --------------------------------------------------------
+    save_pages(pages)
 
     print()
-    print(
-        "========================================"
-    )
+    print("================================")
+    print(f"Crawling beendet")
+    print(f"Neue/aktualisierte Seiten: {processed}")
+    print(f"Gesamtseiten: {len(pages)}")
+    print("================================")
 
-    print(
-        "CRAWLER ABGESCHLOSSEN"
-    )
-
-    print(
-        "========================================"
-    )
-
-    print(
-        "Verarbeitet:",
-        stats["processed"]
-    )
-
-    print(
-        "Aktualisiert:",
-        stats["updated"]
-    )
-
-    print(
-        "Unverändert (304):",
-        stats["unchanged"]
-    )
-
-    print(
-        "Robots blockiert:",
-        stats["robots"]
-    )
-
-    print(
-        "403 Forbidden:",
-        stats["forbidden"]
-    )
-
-    print(
-        "Rate Limited:",
-        stats["rate_limited"]
-    )
-
-    print(
-        "Sonstige Fehler:",
-        stats["errors"]
-    )
-
-    print(
-        "Neue URLs entdeckt:",
-        stats["discovered"]
-    )
-
-    print(
-        "Wiby Seeds:",
-        stats["wiby_seeds"]
-    )
-
-    print(
-        "Gesamt im Index:",
-        len(page_map)
-    )
-
-    print(
-        "========================================"
-    )
-
-
-# ============================================================
-# START
-# ============================================================
 
 if __name__ == "__main__":
-    crawl()
-
-    # --------------------------------------------------------
-    # Metadaten
- 
+    crawl(START_URLS)
