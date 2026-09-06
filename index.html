@@ -2,291 +2,263 @@
 <html lang="de">
 
 <head>
+<meta charset="UTF-8">
 
-    <meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<title>TBS Search</title>
 
-    <title>TBS - Suche</title>
+<style>
 
+* {
+    box-sizing: border-box;
+}
 
-    <style>
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
 
-        * {
-            box-sizing: border-box;
-        }
+body {
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 
+    background: #fff;
+    color: #202124;
+}
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-        }
 
+/* =========================
+   HEADER
+   ========================= */
 
-        body {
-            font-family:
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
+header {
+    padding: 70px 20px 30px;
+    text-align: center;
+}
 
-            background: #ffffff;
-            color: #202124;
-        }
+.logo {
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+}
 
+.search-container {
+    width: 100%;
+    max-width: 720px;
+    margin: auto;
+}
 
-        /* =========================
-           HEADER
-           ========================= */
+.search-box {
+    display: flex;
+    width: 100%;
+}
 
-        header {
-            padding: 70px 20px 30px;
-            text-align: center;
-        }
+#searchInput {
+    flex: 1;
+    min-width: 0;
 
+    height: 52px;
 
-        .logo {
-            font-size: 46px;
-            font-weight: 700;
-            letter-spacing: -2px;
-            margin-bottom: 28px;
-        }
+    padding: 0 18px;
 
+    border: 1px solid #c7c7c7;
+    border-right: none;
 
-        .search-container {
-            width: 100%;
-            max-width: 720px;
-            margin: auto;
-        }
+    border-radius: 26px 0 0 26px;
 
+    font-size: 17px;
 
-        .search-box {
-            display: flex;
-            width: 100%;
-        }
+    outline: none;
+}
 
+#searchInput:focus {
+    border-color: #4285f4;
+}
 
-        #searchInput {
-            flex: 1;
-            min-width: 0;
+#searchButton {
+    height: 52px;
 
-            height: 52px;
+    padding: 0 25px;
 
-            padding: 0 18px;
+    border: none;
 
-            border: 1px solid #c7c7c7;
-            border-right: none;
+    border-radius: 0 26px 26px 0;
 
-            border-radius: 26px 0 0 26px;
+    background: #4285f4;
+    color: white;
 
-            font-size: 17px;
+    font-size: 16px;
 
-            outline: none;
-        }
+    cursor: pointer;
+}
 
+#searchButton:hover {
+    background: #3367d6;
+}
 
-        #searchInput:focus {
-            border-color: #4285f4;
-        }
+#searchButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
 
 
-        #searchButton {
-            height: 52px;
+/* =========================
+   STATUS
+   ========================= */
 
-            padding: 0 25px;
+#status {
+    max-width: 900px;
 
-            border: none;
+    margin: 20px auto 10px;
 
-            border-radius: 0 26px 26px 0;
+    padding: 0 20px;
 
-            background: #4285f4;
-            color: white;
+    color: #70757a;
 
-            font-size: 16px;
+    font-size: 14px;
+}
 
-            cursor: pointer;
-        }
 
+/* =========================
+   RESULTS
+   ========================= */
 
-        #searchButton:hover {
-            background: #3367d6;
-        }
+#results {
+    max-width: 900px;
 
+    margin: 0 auto;
 
-        #searchButton:disabled {
-            opacity: 0.6;
-            cursor: default;
-        }
+    padding: 10px 20px 50px;
+}
 
+.result {
+    margin-bottom: 27px;
+}
 
-        /* =========================
-           STATUS
-           ========================= */
+.result-title {
+    margin: 0;
 
-        #status {
-            max-width: 900px;
+    font-size: 20px;
+    font-weight: 500;
+}
 
-            margin: 20px auto 10px;
+.result-title a {
+    color: #1a0dab;
+    text-decoration: none;
+}
 
-            padding: 0 20px;
+.result-title a:hover {
+    text-decoration: underline;
+}
 
-            color: #70757a;
+.result-url {
+    margin: 4px 0;
 
-            font-size: 14px;
-        }
+    color: #188038;
 
+    font-size: 14px;
 
-        /* =========================
-           RESULTS
-           ========================= */
+    word-break: break-all;
+}
 
-        #results {
-            max-width: 900px;
+.result-description {
+    color: #4d5156;
 
-            margin: 0 auto;
+    line-height: 1.5;
 
-            padding: 10px 20px 50px;
-        }
+    font-size: 15px;
 
+    max-width: 750px;
+}
 
-        .result {
-            margin-bottom: 27px;
-        }
+.empty {
+    padding: 50px 20px;
 
+    text-align: center;
 
-        .result-title {
-            margin: 0;
+    color: #777;
+}
 
-            font-size: 20px;
 
-            font-weight: 500;
-        }
+/* =========================
+   LOADING
+   ========================= */
 
+.loading {
+    padding: 40px 20px;
 
-        .result-title a {
-            color: #1a0dab;
+    text-align: center;
 
-            text-decoration: none;
-        }
+    color: #70757a;
+}
 
+.spinner {
+    display: inline-block;
 
-        .result-title a:hover {
-            text-decoration: underline;
-        }
+    width: 18px;
+    height: 18px;
 
+    margin-right: 8px;
 
-        .result-url {
-            margin: 4px 0;
+    border: 2px solid #ddd;
+    border-top-color: #4285f4;
 
-            color: #188038;
+    border-radius: 50%;
 
-            font-size: 14px;
+    vertical-align: -4px;
 
-            word-break: break-all;
-        }
+    animation: spin 0.8s linear infinite;
+}
 
+@keyframes spin {
 
-        .result-description {
-            color: #4d5156;
+    from {
+        transform: rotate(0deg);
+    }
 
-            line-height: 1.5;
+    to {
+        transform: rotate(360deg);
+    }
 
-            font-size: 15px;
+}
 
-            max-width: 750px;
-        }
 
+/* =========================
+   MOBILE
+   ========================= */
 
-        .empty {
-            padding: 50px 20px;
+@media (max-width: 600px) {
 
-            text-align: center;
+    header {
+        padding-top: 35px;
+    }
 
-            color: #777;
-        }
+    .logo {
+        font-size: 38px;
+    }
 
+    #searchInput {
+        font-size: 16px;
+    }
 
-        /* =========================
-           LOADING
-           ========================= */
+    #searchButton {
+        padding: 0 18px;
+    }
 
-        .loading {
-            padding: 40px 20px;
+}
 
-            text-align: center;
-
-            color: #70757a;
-        }
-
-
-        .spinner {
-            display: inline-block;
-
-            width: 18px;
-            height: 18px;
-
-            margin-right: 8px;
-
-            border: 2px solid #ddd;
-            border-top-color: #4285f4;
-
-            border-radius: 50%;
-
-            vertical-align: -4px;
-
-            animation:
-                spin 0.8s linear infinite;
-        }
-
-
-        @keyframes spin {
-
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-
-        }
-
-
-        /* =========================
-           MOBILE
-           ========================= */
-
-        @media (max-width: 600px) {
-
-            header {
-                padding-top: 35px;
-            }
-
-
-            .logo {
-                font-size: 38px;
-            }
-
-
-            #searchInput {
-                font-size: 16px;
-            }
-
-
-            #searchButton {
-                padding: 0 18px;
-            }
-
-        }
-
-    </style>
-
+</style>
 </head>
 
 
@@ -298,7 +270,6 @@
     <div class="logo">
         TBS Search
     </div>
-
 
     <div class="search-container">
 
@@ -314,7 +285,6 @@
                 autocomplete="off"
                 spellcheck="false"
             >
-
 
             <button
                 id="searchButton"
@@ -347,14 +317,12 @@
    KONFIGURATION
    ============================================================ */
 
-
 const INDEX_ROOT = "data/index";
 
 const PAGES_ROOT = "data/pages";
 
 const MANIFEST_FILE =
     INDEX_ROOT + "/manifest.json";
-
 
 const MAX_RESULTS = 100;
 
@@ -364,59 +332,52 @@ const MAX_TERMS = 10;
 
 
 /*
+ * ============================================================
  * WICHTIG:
  *
- * Bei jedem vollständigen Seitenaufruf wird ein neuer
- * Cache-Buster erzeugt.
+ * Dieser Wert wird bei JEDEM vollständigen Seitenaufruf
+ * neu erzeugt.
  *
- * Dadurch kann ein alter Browser-Cache nicht einfach
- * eine veraltete JSON-Datei liefern.
+ * Dadurch sind auch zwei Reloads niemals dieselbe Anfrage.
+ * ============================================================
  */
 
-const CACHE_VERSION =
-    Date.now().toString();
-
+const RELOAD_ID =
+    Date.now().toString() +
+    "-" +
+    Math.random()
+        .toString(36)
+        .substring(2);
 
 
 /* ============================================================
-   GLOBAL
+   NEUER IN-MEMORY-INDEX
    ============================================================ */
 
+/*
+ * Diese Maps existieren nur für diesen einen Seitenaufruf.
+ *
+ * Nach einem Reload sind sie automatisch leer.
+ */
 
 let manifest = null;
-
-let indexLoaded = false;
-
-
-/*
- * Term-Shards
- */
 
 const termShardCache =
     new Map();
 
-
-/*
- * Dokument-Shards
- */
-
 const documentShardCache =
     new Map();
-
-
-/*
- * Einzelne Dokumente
- */
 
 const documentCache =
     new Map();
 
 
+let indexLoaded = false;
+
 
 /* ============================================================
    HTML ESCAPING
    ============================================================ */
-
 
 function escapeHTML(value) {
 
@@ -430,11 +391,9 @@ function escapeHTML(value) {
 }
 
 
-
 /* ============================================================
    TEXT NORMALISIEREN
    ============================================================ */
-
 
 function normalizeText(value) {
 
@@ -446,16 +405,15 @@ function normalizeText(value) {
 }
 
 
-
 /* ============================================================
    SUCHBEGRIFFE
    ============================================================ */
-
 
 function tokenize(query) {
 
     return normalizeText(query)
         .split(/\s+/)
+
         .map(term =>
             term
                 .replace(
@@ -464,46 +422,106 @@ function tokenize(query) {
                 )
                 .trim()
         )
+
         .filter(Boolean)
+
         .slice(0, MAX_TERMS);
 
 }
 
 
-
 /* ============================================================
-   CACHE-BUSTER
+   FRISCHE URL FÜR JEDE INDEX-DATEI
    ============================================================ */
 
-
-function cacheBustedURL(url) {
+function freshURL(path) {
 
     const separator =
-        url.includes("?")
+        path.includes("?")
             ? "&"
             : "?";
 
-
     return (
-        url +
+        path +
         separator +
-        "v=" +
-        CACHE_VERSION
+        "reload=" +
+        encodeURIComponent(RELOAD_ID) +
+        "&random=" +
+        Math.random()
+            .toString(36)
+            .substring(2)
     );
 
 }
 
+
+/* ============================================================
+   FRISCHEN FETCH AUSFÜHREN
+   ============================================================ */
+
+async function freshFetch(path) {
+
+    const url =
+        freshURL(path);
+
+    console.log(
+        "TBS Search lädt:",
+        url
+    );
+
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "GET",
+
+                /*
+                 * Browser darf die Antwort nicht aus
+                 * seinem normalen HTTP-Cache nehmen.
+                 */
+
+                cache: "no-store",
+
+                /*
+                 * Zusätzliche Cache-Header-Anweisung.
+                 */
+
+                headers: {
+                    "Cache-Control":
+                        "no-cache, no-store, max-age=0",
+                    "Pragma":
+                        "no-cache"
+                }
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            path +
+            " → HTTP " +
+            response.status
+        );
+
+    }
+
+
+    return response;
+
+}
 
 
 /* ============================================================
    SHA-256
    ============================================================ */
 
-
 async function sha256(text) {
 
     const data =
-        new TextEncoder().encode(text);
+        new TextEncoder()
+            .encode(text);
 
 
     const hash =
@@ -518,22 +536,22 @@ async function sha256(text) {
 
 
     return Array.from(bytes)
+
         .map(
             byte =>
                 byte
                     .toString(16)
                     .padStart(2, "0")
         )
+
         .join("");
 
 }
 
 
-
 /* ============================================================
-   INDEX-MANIFEST LADEN
+   MANIFEST LADEN
    ============================================================ */
-
 
 async function loadIndex() {
 
@@ -543,42 +561,28 @@ async function loadIndex() {
         );
 
 
-    status.textContent =
-        "Suchindex wird geladen...";
+    status.innerHTML = `
+        <span class="spinner"></span>
+        Neuer Suchindex wird geladen...
+    `;
 
 
-    const url =
-        cacheBustedURL(
-            MANIFEST_FILE
-        );
-
+    /*
+     * WICHTIG:
+     *
+     * Manifest wird bei jedem Reload komplett
+     * neu angefordert.
+     */
 
     const response =
-        await fetch(
-            url,
-            {
-                cache: "no-store"
-            }
+        await freshFetch(
+            MANIFEST_FILE
         );
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            "manifest.json: HTTP " +
-            response.status
-        );
-
-    }
 
 
     manifest =
         await response.json();
 
-
-    /*
-     * Das Manifest muss existieren.
-     */
 
     if (
         !manifest ||
@@ -586,7 +590,7 @@ async function loadIndex() {
     ) {
 
         throw new Error(
-            "Ungültiges manifest.json."
+            "manifest.json ist ungültig."
         );
 
     }
@@ -595,7 +599,7 @@ async function loadIndex() {
     indexLoaded = true;
 
 
-    const pageCount =
+    const count =
         manifest.pages ??
         manifest.documents ??
         manifest.total_pages ??
@@ -603,23 +607,21 @@ async function loadIndex() {
 
 
     status.textContent =
-        pageCount +
-        " Seiten im Suchindex.";
+        count +
+        " Seiten im frisch geladenen Suchindex.";
 
 
     console.log(
-        "TBS Search Index geladen:",
+        "TBS Search: neuer Index geladen",
         manifest
     );
 
 }
 
 
-
 /* ============================================================
-   TERM-SHARD LADEN
+   TERM-SHARD
    ============================================================ */
-
 
 async function getTermShard(term) {
 
@@ -641,7 +643,8 @@ async function getTermShard(term) {
 
 
     /*
-     * Bereits geladener Shard?
+     * Cache existiert nur innerhalb dieses
+     * Seitenaufrufs.
      */
 
     if (
@@ -662,49 +665,42 @@ async function getTermShard(term) {
         ".json";
 
 
-    const url =
-        cacheBustedURL(
-            path
-        );
+    let response;
 
 
-    const response =
-        await fetch(
-            url,
-            {
-                cache: "no-store"
-            }
-        );
+    try {
+
+        response =
+            await freshFetch(
+                path
+            );
+
+    } catch (error) {
+
+        /*
+         * Ein nicht vorhandener Term-Shard
+         * bedeutet einfach: keine Treffer.
+         */
+
+        if (
+            error.message.includes(
+                "HTTP 404"
+            )
+        ) {
+
+            const empty = {};
+
+            termShardCache.set(
+                shard,
+                empty
+            );
+
+            return empty;
+
+        }
 
 
-    /*
-     * Kein Shard = keine Treffer.
-     */
-
-    if (
-        response.status === 404
-    ) {
-
-        const empty = {};
-
-        termShardCache.set(
-            shard,
-            empty
-        );
-
-        return empty;
-
-    }
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            "Term-Shard " +
-            shard +
-            ": HTTP " +
-            response.status
-        );
+        throw error;
 
     }
 
@@ -724,11 +720,9 @@ async function getTermShard(term) {
 }
 
 
-
 /* ============================================================
    POSTINGS
    ============================================================ */
-
 
 async function getPostings(term) {
 
@@ -760,20 +754,16 @@ async function getPostings(term) {
 }
 
 
-
 /* ============================================================
    DOKUMENT-SHARD
    ============================================================ */
-
 
 async function getDocumentShard(
     shard
 ) {
 
     if (
-        documentShardCache.has(
-            shard
-        )
+        documentShardCache.has(shard)
     ) {
 
         return documentShardCache.get(
@@ -790,45 +780,37 @@ async function getDocumentShard(
         ".json";
 
 
-    const url =
-        cacheBustedURL(
-            path
-        );
+    let response;
 
 
-    const response =
-        await fetch(
-            url,
-            {
-                cache: "no-store"
-            }
-        );
+    try {
+
+        response =
+            await freshFetch(
+                path
+            );
+
+    } catch (error) {
+
+        if (
+            error.message.includes(
+                "HTTP 404"
+            )
+        ) {
+
+            const empty = {};
+
+            documentShardCache.set(
+                shard,
+                empty
+            );
+
+            return empty;
+
+        }
 
 
-    if (
-        response.status === 404
-    ) {
-
-        const empty = {};
-
-        documentShardCache.set(
-            shard,
-            empty
-        );
-
-        return empty;
-
-    }
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            "Dokument-Shard " +
-            shard +
-            ": HTTP " +
-            response.status
-        );
+        throw error;
 
     }
 
@@ -848,15 +830,11 @@ async function getDocumentShard(
 }
 
 
-
 /* ============================================================
    DOKUMENTE LADEN
    ============================================================ */
 
-
-async function loadDocuments(
-    ids
-) {
+async function loadDocuments(ids) {
 
     const result = [];
 
@@ -868,14 +846,13 @@ async function loadDocuments(
         );
 
 
-    /*
-     * Bereits bekannte Dokumente
-     */
-
     const missingIds = [];
 
 
-    for (const id of limitedIds) {
+    for (
+        const id
+        of limitedIds
+    ) {
 
         if (
             documentCache.has(id)
@@ -895,20 +872,24 @@ async function loadDocuments(
 
 
     /*
-     * Nach Shards gruppieren
+     * Dokumente nach Shard gruppieren.
      */
 
     const groups =
         new Map();
 
 
-    for (const id of missingIds) {
+    for (
+        const id
+        of missingIds
+    ) {
 
         const shard =
-            String(id).substring(
-                0,
-                2
-            );
+            String(id)
+                .substring(
+                    0,
+                    2
+                );
 
 
         if (
@@ -931,7 +912,7 @@ async function loadDocuments(
 
 
     /*
-     * Benötigte Shards laden
+     * Benötigte Shards frisch laden.
      */
 
     for (
@@ -948,7 +929,10 @@ async function loadDocuments(
             );
 
 
-        for (const id of shardIds) {
+        for (
+            const id
+            of shardIds
+        ) {
 
             const page =
                 documents[id];
@@ -979,11 +963,9 @@ async function loadDocuments(
 }
 
 
-
 /* ============================================================
-   VORKOMMEN
+   VORKOMMEN ZÄHLEN
    ============================================================ */
-
 
 function countOccurrences(
     text,
@@ -1032,11 +1014,9 @@ function countOccurrences(
 }
 
 
-
 /* ============================================================
-   RELEVANZ
+   RANKING
    ============================================================ */
-
 
 function calculateScore(
     page,
@@ -1136,15 +1116,11 @@ function calculateScore(
             score += 3;
 
 
-            const occurrences =
+            score += Math.min(
                 countOccurrences(
                     text,
                     term
-                );
-
-
-            score += Math.min(
-                occurrences * 0.25,
+                ) * 0.25,
                 10
             );
 
@@ -1153,33 +1129,14 @@ function calculateScore(
     }
 
 
-    const allInTitle =
+    if (
         terms.every(
             term =>
                 title.includes(term)
-        );
-
-
-    if (allInTitle) {
+        )
+    ) {
 
         score += 50;
-
-    }
-
-
-    const allInPage =
-        terms.every(
-            term =>
-                title.includes(term) ||
-                headings.includes(term) ||
-                description.includes(term) ||
-                text.includes(term)
-        );
-
-
-    if (allInPage) {
-
-        score += 30;
 
     }
 
@@ -1189,11 +1146,9 @@ function calculateScore(
 }
 
 
-
 /* ============================================================
    SNIPPET
    ============================================================ */
-
 
 function createSnippet(
     page,
@@ -1269,9 +1224,6 @@ function createSnippet(
     }
 
 
-    const snippetLength = 300;
-
-
     const start =
         Math.max(
             0,
@@ -1282,7 +1234,7 @@ function createSnippet(
     const end =
         Math.min(
             text.length,
-            start + snippetLength
+            start + 300
         );
 
 
@@ -1318,15 +1270,11 @@ function createSnippet(
 }
 
 
-
 /* ============================================================
    SUCHE
    ============================================================ */
 
-
-async function search(
-    query
-) {
+async function search(query) {
 
     const terms =
         tokenize(query);
@@ -1340,10 +1288,6 @@ async function search(
 
     }
 
-
-    /*
-     * Posting-Listen laden
-     */
 
     const postingLists = [];
 
@@ -1376,7 +1320,7 @@ async function search(
 
 
     /*
-     * Kleinste Liste zuerst
+     * Kleinste Posting-Liste zuerst.
      */
 
     postingLists.sort(
@@ -1385,15 +1329,15 @@ async function search(
     );
 
 
-    /*
-     * Schnittmenge
-     */
-
     let ids =
         new Set(
             postingLists[0]
         );
 
+
+    /*
+     * Schnittmenge bilden.
+     */
 
     for (
         let i = 1;
@@ -1409,10 +1353,11 @@ async function search(
 
         ids =
             new Set(
-                [...ids].filter(
-                    id =>
-                        current.has(id)
-                )
+                [...ids]
+                    .filter(
+                        id =>
+                            current.has(id)
+                    )
             );
 
 
@@ -1428,7 +1373,8 @@ async function search(
 
 
     /*
-     * Dokumente laden
+     * Dokumente frisch aus den
+     * Dokument-Shards laden.
      */
 
     const pages =
@@ -1436,10 +1382,6 @@ async function search(
             [...ids]
         );
 
-
-    /*
-     * Ranking
-     */
 
     const results = [];
 
@@ -1461,11 +1403,8 @@ async function search(
         ) {
 
             results.push({
-
                 page,
-
                 score
-
             });
 
         }
@@ -1487,11 +1426,9 @@ async function search(
 }
 
 
-
 /* ============================================================
-   ERGEBNISSE
+   ERGEBNISSE ANZEIGEN
    ============================================================ */
-
 
 function displayResults(
     results,
@@ -1618,22 +1555,16 @@ function displayResults(
 
             </h2>
 
-
             <div class="result-url">
-
                 ${escapeHTML(url)}
-
             </div>
 
-
             <div class="result-description">
-
                 ${escapeHTML(
                     snippet ||
                     page.description ||
                     "Keine Beschreibung verfügbar."
                 )}
-
             </div>
 
         `;
@@ -1653,11 +1584,66 @@ function displayResults(
 }
 
 
+/* ============================================================
+   SUCHFORMULAR
+   ============================================================ */
+
+document
+    .getElementById(
+        "searchForm"
+    )
+    .addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            if (
+                !indexLoaded
+            ) {
+
+                return;
+
+            }
+
+
+            const input =
+                document.getElementById(
+                    "searchInput"
+                );
+
+
+            const query =
+                input.value.trim();
+
+
+            /*
+             * Die Suchanfrage wird NICHT in der URL
+             * gespeichert.
+             *
+             * Nach einem Reload ist die Seite wieder
+             * komplett leer.
+             */
+
+            history.replaceState(
+                null,
+                "",
+                window.location.pathname
+            );
+
+
+            await performSearch(
+                query
+            );
+
+        }
+    );
+
 
 /* ============================================================
    SUCHE AUSFÜHREN
    ============================================================ */
-
 
 async function performSearch(
     query
@@ -1702,7 +1688,7 @@ async function performSearch(
 
     status.innerHTML = `
         <span class="spinner"></span>
-        Suche läuft...
+        Suche im frisch geladenen Index...
     `;
 
 
@@ -1726,7 +1712,7 @@ async function performSearch(
     } catch (error) {
 
         console.error(
-            "Suchfehler:",
+            "TBS Search Fehler:",
             error
         );
 
@@ -1740,7 +1726,7 @@ async function performSearch(
             <div class="empty">
 
                 <strong>
-                    Fehler bei der Suche
+                    Fehler beim Laden des Index.
                 </strong>
 
                 <br><br>
@@ -1763,190 +1749,148 @@ async function performSearch(
 }
 
 
-
-/* ============================================================
-   FORMULAR
-   ============================================================ */
-
-
-document
-    .getElementById(
-        "searchForm"
-    )
-    .addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-
-            if (
-                !indexLoaded
-            ) {
-
-                return;
-
-            }
-
-
-            const input =
-                document.getElementById(
-                    "searchInput"
-                );
-
-
-            const query =
-                input.value.trim();
-
-
-            const url =
-                new URL(
-                    window.location.href
-                );
-
-
-            if (query) {
-
-                url.searchParams.set(
-                    "q",
-                    query
-                );
-
-            } else {
-
-                url.searchParams.delete(
-                    "q"
-                );
-
-            }
-
-
-            history.replaceState(
-                null,
-                "",
-                url
-            );
-
-
-            await performSearch(
-                query
-            );
-
-        }
-    );
-
-
-
 /* ============================================================
    START
    ============================================================ */
 
-
 /*
- * WICHTIG:
+ * Beim Öffnen der Seite:
  *
- * Nicht mehr:
+ * 1. Browser startet neues JavaScript.
+ * 2. Alle Maps sind leer.
+ * 3. Neuer RELOAD_ID wird erzeugt.
+ * 4. Manifest wird neu geladen.
+ * 5. Kein alter Suchbegriff wird übernommen.
  *
- *     loadIndex().then(searchFromURL)
- *
- * sondern:
- *
- *     await loadIndex()
- *     await performSearch()
- *
- * Dadurch ist garantiert, dass der Index vollständig
- * geladen wurde, bevor die URL-Suche startet.
+ * Genau wie ein erster Besuch.
  */
-
 
 async function start() {
 
     try {
 
-        await loadIndex();
+        /*
+         * Suchfeld ausdrücklich leeren.
+         */
+
+        document
+            .getElementById(
+                "searchInput"
+            )
+            .value = "";
 
 
-        const params =
-            new URLSearchParams(
-                window.location.search
-            );
+        /*
+         * Ergebnisse ausdrücklich leeren.
+         */
+
+        document
+            .getElementById(
+                "results"
+            )
+            .innerHTML = "";
 
 
-        const query =
-            params.get("q");
-
+        /*
+         * Alten URL-Parameter entfernen.
+         */
 
         if (
-            query
+            window.location.search
         ) {
 
-            const input =
-                document.getElementById(
-                    "searchInput"
-                );
-
-
-            input.value =
-                query;
-
-
-            await performSearch(
-                query
+            history.replaceState(
+                null,
+                "",
+                window.location.pathname
             );
 
         }
 
 
+        /*
+         * FRISCHEN INDEX LADEN.
+         */
+
+        await loadIndex();
+
+
+        /*
+         * Nach dem Laden NICHT automatisch suchen.
+         */
+
+        document
+            .getElementById(
+                "status"
+            )
+            .textContent =
+                (
+                    manifest?.pages ??
+                    manifest?.documents ??
+                    manifest?.total_pages ??
+                    "?"
+                ) +
+                " Seiten im Suchindex. Bereit.";
+
+
+        console.log(
+            "TBS Search bereit.",
+            "Reload-ID:",
+            RELOAD_ID
+        );
+
     } catch (error) {
 
         console.error(
-            "TBS Search konnte nicht gestartet werden:",
+            "TBS Search Startfehler:",
             error
         );
 
 
-        const status =
-            document.getElementById(
+        document
+            .getElementById(
                 "status"
-            );
+            )
+            .textContent =
+                "Suchindex konnte nicht geladen werden.";
 
 
-        status.textContent =
-            "Suchindex konnte nicht geladen werden.";
+        document
+            .getElementById(
+                "results"
+            )
+            .innerHTML = `
 
+                <div class="empty">
 
-        document.getElementById(
-            "results"
-        ).innerHTML = `
+                    <strong>
+                        Index konnte nicht geladen werden.
+                    </strong>
 
-            <div class="empty">
+                    <br><br>
 
-                <strong>
-                    Suchindex konnte nicht geladen werden.
-                </strong>
+                    <code>
+                        ${escapeHTML(
+                            error.message
+                        )}
+                    </code>
 
-                <br><br>
+                </div>
 
-                <code>
-                    ${escapeHTML(
-                        error.message
-                    )}
-                </code>
-
-            </div>
-
-        `;
+            `;
 
     }
 
 }
 
+
+/*
+ * START.
+ */
+
 start();
 
 </script>
 
-
 </body>
-
 </html>
-
