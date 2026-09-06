@@ -9,29 +9,129 @@ LEGACY_FILE = "sites.json"
 
 DATA_DIR = "data"
 PAGES_DIR = os.path.join(DATA_DIR, "pages")
-
 BACKUP_DIR = os.path.join(DATA_DIR, "legacy-backup")
 
 
 def normalize_url(url):
+    if not isinstance(url, str):
+        return None
+
+    url = url.strip()
 
     if not url:
         return None
 
-    return url.strip()
+    return url
 
 
 def shard_for_url(url):
-
     return hashlib.sha256(
         url.encode("utf-8")
     ).hexdigest()[:2]
 
 
+def convert_entry(key, value):
+    """
+    Unterstützt mehrere mögliche sites.json-Formate.
+    """
+
+    # --------------------------------------------------------
+    # Fall 1:
+    #
+    # {
+    #   "https://example.com": {
+    #       "title": "...",
+    #       ...
+    #   }
+    # }
+    # --------------------------------------------------------
+
+    if isinstance(value, dict):
+
+        url = normalize_url(
+            value.get("url")
+        )
+
+        if not url:
+            url = normalize_url(key)
+
+        if not url:
+            return None
+
+        return {
+            "url": url,
+            "title": value.get("title", ""),
+            "description": value.get(
+                "description",
+                ""
+            ),
+            "headings": value.get(
+                "headings",
+                []
+            ),
+            "text": value.get(
+                "text",
+                ""
+            ),
+            "links": value.get(
+                "links",
+                []
+            ),
+            "etag": value.get("etag"),
+            "last_modified": value.get(
+                "last_modified"
+            ),
+            "indexed": value.get(
+                "indexed",
+                int(time.time())
+            ),
+            "updated": value.get(
+                "updated",
+                int(time.time())
+            ),
+            "checked": value.get(
+                "checked",
+                int(time.time())
+            )
+        }
+
+    # --------------------------------------------------------
+    # Fall 2:
+    #
+    # {
+    #   "url": "...",
+    #   "title": "...",
+    #   ...
+    # }
+    # --------------------------------------------------------
+
+    if isinstance(value, str):
+
+        url = normalize_url(value)
+
+        if not url:
+            return None
+
+        return {
+            "url": url,
+            "title": "",
+            "description": "",
+            "headings": [],
+            "text": "",
+            "links": [],
+            "etag": None,
+            "last_modified": None,
+            "indexed": int(time.time()),
+            "updated": int(time.time()),
+            "checked": int(time.time())
+        }
+
+    return None
+
+
 def migrate():
 
     if not os.path.exists(LEGACY_FILE):
-
         raise SystemExit(
             "FEHLER: sites.json wurde nicht gefunden."
         )
@@ -43,36 +143,21 @@ def migrate():
         "r",
         encoding="utf-8"
     ) as f:
-
         old_data = json.load(f)
 
-    if isinstance(old_data, dict):
-
-        if "sites" in old_data:
-            old_data = old_data["sites"]
-
-        else:
-            old_data = list(
-                old_data.values()
-            )
-
-    if not isinstance(old_data, list):
-
-        raise SystemExit(
-            "FEHLER: Unbekanntes sites.json-Format."
-        )
-
     print(
-        f"Gefundene alte Einträge: "
-        f"{len(old_data)}"
+        "Altes JSON-Format:",
+        type(old_data).__name__
     )
-
-    os.makedirs(PAGES_DIR, exist_ok=True)
-    os.makedirs(BACKUP_DIR, exist_ok=True)
 
     # --------------------------------------------------------
     # Backup
     # --------------------------------------------------------
+
+    os.makedirs(
+        BACKUP_DIR,
+        exist_ok=True
+    )
 
     backup_name = (
         "sites-"
@@ -95,61 +180,163 @@ def migrate():
     )
 
     # --------------------------------------------------------
-    # Migration
+    # Daten extrahieren
+    # --------------------------------------------------------
+
+    entries = []
+
+    if isinstance(old_data, list):
+
+        print(
+            f"Alte Liste: {len(old_data)} Einträge"
+        )
+
+        for item in old_data:
+
+            if not isinstance(item, dict):
+                continue
+
+            url = normalize_url(
+                item.get("url")
+            )
+
+            if not url:
+                continue
+
+            entries.append(
+                (
+                    url,
+                    item
+                )
+            )
+
+    elif isinstance(old_data, dict):
+
+        # Falls das JSON so aussieht:
+        #
+        # {
+        #   "sites": [...]
+        # }
+
+        if isinstance(
+            old_data.get("sites"),
+            list
+        ):
+
+            print(
+                "Erkanntes Format: sites-Liste"
+            )
+
+            for item in old_data["sites"]:
+
+                if not isinstance(item, dict):
+                    continue
+
+                url = normalize_url(
+                    item.get("url")
+                )
+
+                if url:
+                    entries.append(
+                        (
+                            url,
+                            item
+                        )
+                    )
+
+        else:
+
+            # URL → Daten
+            #
+            # {
+            #   "https://example.com": {...}
+            # }
+
+            print(
+                "Erkanntes Format: URL → Daten"
+            )
+
+            for key, value in old_data.items():
+
+                converted = convert_entry(
+                    key,
+                    value
+                )
+
+                if converted:
+                    entries.append(
+                        (
+                            converted["url"],
+                            converted
+                        )
+                    )
+
+    else:
+
+        raise SystemExit(
+            "FEHLER: Unbekanntes sites.json-Format."
+        )
+
+    print(
+        f"Erkannte Seiten: {len(entries)}"
+    )
+
+    # --------------------------------------------------------
+    # Ausgabeordner
+    # --------------------------------------------------------
+
+    os.makedirs(
+        PAGES_DIR,
+        exist_ok=True
+    )
+
+    # --------------------------------------------------------
+    # Shards erstellen
     # --------------------------------------------------------
 
     shards = {}
 
-    migrated = 0
-
-    now = int(time.time())
-
-    for old in old_data:
-
-        if not isinstance(old, dict):
-            continue
-
-        url = normalize_url(
-            old.get("url")
-        )
-
-        if not url:
-            continue
+    for url, data in entries:
 
         page = {
             "url": url,
-            "title": old.get("title", ""),
-            "description": old.get(
+            "title": data.get(
+                "title",
+                ""
+            ),
+            "description": data.get(
                 "description",
                 ""
             ),
-            "headings": old.get(
+            "headings": data.get(
                 "headings",
                 []
             ),
-            "text": old.get(
+            "text": data.get(
                 "text",
                 ""
             ),
-            "links": old.get(
+            "links": data.get(
                 "links",
                 []
             ),
-            "etag": old.get("etag"),
-            "last_modified": old.get(
+            "etag": data.get(
+                "etag"
+            ),
+            "last_modified": data.get(
                 "last_modified"
             ),
-            "indexed": old.get(
+            "indexed": data.get(
                 "indexed",
-                now
+                int(time.time())
             ),
-            "updated": old.get(
+            "updated": data.get(
                 "updated",
-                now
+                int(time.time())
             ),
-            "checked": old.get(
+            "checked": data.get(
                 "checked",
-                now
+                int(time.time())
             )
         }
 
@@ -160,11 +347,11 @@ def migrate():
             []
         ).append(page)
 
-        migrated += 1
-
     # --------------------------------------------------------
     # Schreiben
     # --------------------------------------------------------
+
+    migrated = 0
 
     for shard, pages in shards.items():
 
@@ -192,15 +379,34 @@ def migrate():
                     + "\n"
                 )
 
-        os.replace(tmp, path)
+                migrated += 1
+
+        os.replace(
+            tmp,
+            path
+        )
+
+    # --------------------------------------------------------
+    # Ergebnis
+    # --------------------------------------------------------
 
     print()
     print("================================")
     print("Migration abgeschlossen")
+    print(f"Erkannt: {len(entries)}")
     print(f"Migriert: {migrated}")
     print(f"Shards: {len(shards)}")
+    print()
     print("sites.json wurde NICHT verändert.")
     print("================================")
+
+    if migrated != len(entries):
+
+        print()
+        print(
+            "WARNUNG: Nicht alle erkannten "
+            "Einträge wurden migriert!"
+        )
 
 
 if __name__ == "__main__":
