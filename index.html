@@ -274,11 +274,6 @@
             }
 
 
-            .search-box {
-                display: flex;
-            }
-
-
             #searchInput {
                 font-size: 16px;
             }
@@ -357,35 +352,34 @@ const INDEX_ROOT = "data/index";
 
 const PAGES_ROOT = "data/pages";
 
-
 const MANIFEST_FILE =
     INDEX_ROOT + "/manifest.json";
 
 
 const MAX_RESULTS = 100;
 
-
-/*
- * Maximal so viele Dokumente werden tatsächlich
- * aus den Page-Shards geladen.
- *
- * Dadurch kann eine sehr häufige Suchanfrage
- * nicht tausende Seiten gleichzeitig laden.
- */
-
 const MAX_DOCUMENTS_TO_LOAD = 300;
-
-
-/*
- * Begrenzung für Suchbegriffe.
- */
 
 const MAX_TERMS = 10;
 
 
+/*
+ * WICHTIG:
+ *
+ * Bei jedem vollständigen Seitenaufruf wird ein neuer
+ * Cache-Buster erzeugt.
+ *
+ * Dadurch kann ein alter Browser-Cache nicht einfach
+ * eine veraltete JSON-Datei liefern.
+ */
+
+const CACHE_VERSION =
+    Date.now().toString();
+
+
 
 /* ============================================================
-   GLOBALER INDEX
+   GLOBAL
    ============================================================ */
 
 
@@ -394,35 +388,28 @@ let manifest = null;
 let indexLoaded = false;
 
 
-
 /*
- * Cache für bereits geladene Term-Shards.
- *
- * Beispiel:
- *
- * {
- *     "ab": {...},
- *     "7f": {...}
- * }
+ * Term-Shards
  */
 
-const termShardCache = new Map();
-
+const termShardCache =
+    new Map();
 
 
 /*
- * Cache für Dokument-Shards.
+ * Dokument-Shards
  */
 
-const documentShardCache = new Map();
-
+const documentShardCache =
+    new Map();
 
 
 /*
- * Cache für einzelne Dokumente.
+ * Einzelne Dokumente
  */
 
-const documentCache = new Map();
+const documentCache =
+    new Map();
 
 
 
@@ -471,7 +458,10 @@ function tokenize(query) {
         .split(/\s+/)
         .map(term =>
             term
-                .replace(/[^\p{L}\p{N}_-]/gu, "")
+                .replace(
+                    /[^\p{L}\p{N}_-]/gu,
+                    ""
+                )
                 .trim()
         )
         .filter(Boolean)
@@ -482,15 +472,32 @@ function tokenize(query) {
 
 
 /* ============================================================
-   HASH / SHARD
+   CACHE-BUSTER
    ============================================================ */
 
 
-/*
- * Der Index-Builder muss denselben Hash verwenden.
- *
- * SHA-256 ist im Browser über WebCrypto verfügbar.
- */
+function cacheBustedURL(url) {
+
+    const separator =
+        url.includes("?")
+            ? "&"
+            : "?";
+
+
+    return (
+        url +
+        separator +
+        "v=" +
+        CACHE_VERSION
+    );
+
+}
+
+
+
+/* ============================================================
+   SHA-256
+   ============================================================ */
 
 
 async function sha256(text) {
@@ -511,8 +518,11 @@ async function sha256(text) {
 
 
     return Array.from(bytes)
-        .map(byte =>
-            byte.toString(16).padStart(2, "0")
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
         )
         .join("");
 
@@ -521,7 +531,93 @@ async function sha256(text) {
 
 
 /* ============================================================
-   TERM-SHARD
+   INDEX-MANIFEST LADEN
+   ============================================================ */
+
+
+async function loadIndex() {
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    status.textContent =
+        "Suchindex wird geladen...";
+
+
+    const url =
+        cacheBustedURL(
+            MANIFEST_FILE
+        );
+
+
+    const response =
+        await fetch(
+            url,
+            {
+                cache: "no-store"
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            "manifest.json: HTTP " +
+            response.status
+        );
+
+    }
+
+
+    manifest =
+        await response.json();
+
+
+    /*
+     * Das Manifest muss existieren.
+     */
+
+    if (
+        !manifest ||
+        typeof manifest !== "object"
+    ) {
+
+        throw new Error(
+            "Ungültiges manifest.json."
+        );
+
+    }
+
+
+    indexLoaded = true;
+
+
+    const pageCount =
+        manifest.pages ??
+        manifest.documents ??
+        manifest.total_pages ??
+        "?";
+
+
+    status.textContent =
+        pageCount +
+        " Seiten im Suchindex.";
+
+
+    console.log(
+        "TBS Search Index geladen:",
+        manifest
+    );
+
+}
+
+
+
+/* ============================================================
+   TERM-SHARD LADEN
    ============================================================ */
 
 
@@ -532,59 +628,81 @@ async function getTermShard(term) {
 
 
     const hash =
-        await sha256(normalized);
+        await sha256(
+            normalized
+        );
+
+
+    const shard =
+        hash.substring(
+            0,
+            2
+        );
 
 
     /*
-     * Der erste Hash-Bereich bestimmt
-     * den Shard.
+     * Bereits geladener Shard?
      */
 
-    const shard =
-        hash.substring(0, 2);
+    if (
+        termShardCache.has(shard)
+    ) {
 
-
-    if (termShardCache.has(shard)) {
-
-        return termShardCache.get(shard);
+        return termShardCache.get(
+            shard
+        );
 
     }
 
 
-    const url =
+    const path =
         INDEX_ROOT +
         "/terms/" +
         shard +
         ".json";
 
 
+    const url =
+        cacheBustedURL(
+            path
+        );
+
+
     const response =
-        await fetch(url);
+        await fetch(
+            url,
+            {
+                cache: "no-store"
+            }
+        );
+
+
+    /*
+     * Kein Shard = keine Treffer.
+     */
+
+    if (
+        response.status === 404
+    ) {
+
+        const empty = {};
+
+        termShardCache.set(
+            shard,
+            empty
+        );
+
+        return empty;
+
+    }
 
 
     if (!response.ok) {
 
-        /*
-         * Ein nicht vorhandener Shard bedeutet
-         * einfach: keine Treffer.
-         */
-
-        if (response.status === 404) {
-
-            const empty = {};
-
-            termShardCache.set(
-                shard,
-                empty
-            );
-
-            return empty;
-
-        }
-
-
         throw new Error(
-            "Term-Shard HTTP " +
+            "Term-Shard " +
+            shard +
+            ": HTTP " +
             response.status
         );
 
@@ -608,33 +726,29 @@ async function getTermShard(term) {
 
 
 /* ============================================================
-   TERM-POSTINGS
+   POSTINGS
    ============================================================ */
 
 
 async function getPostings(term) {
 
     const shard =
-        await getTermShard(term);
+        await getTermShard(
+            term
+        );
 
 
-    /*
-     * Erwartetes Format:
-
-     {
-         "suchbegriff": [
-             "document-id",
-             "document-id"
-         ]
-     }
-     */
+    const key =
+        normalizeText(term);
 
 
     const postings =
-        shard[normalizeText(term)];
+        shard[key];
 
 
-    if (!Array.isArray(postings)) {
+    if (
+        !Array.isArray(postings)
+    ) {
 
         return [];
 
@@ -652,10 +766,14 @@ async function getPostings(term) {
    ============================================================ */
 
 
-async function getDocumentShard(shard) {
+async function getDocumentShard(
+    shard
+) {
 
     if (
-        documentShardCache.has(shard)
+        documentShardCache.has(
+            shard
+        )
     ) {
 
         return documentShardCache.get(
@@ -665,35 +783,50 @@ async function getDocumentShard(shard) {
     }
 
 
-    const url =
+    const path =
         PAGES_ROOT +
         "/" +
         shard +
         ".json";
 
 
+    const url =
+        cacheBustedURL(
+            path
+        );
+
+
     const response =
-        await fetch(url);
+        await fetch(
+            url,
+            {
+                cache: "no-store"
+            }
+        );
+
+
+    if (
+        response.status === 404
+    ) {
+
+        const empty = {};
+
+        documentShardCache.set(
+            shard,
+            empty
+        );
+
+        return empty;
+
+    }
 
 
     if (!response.ok) {
 
-        if (response.status === 404) {
-
-            const empty = {};
-
-            documentShardCache.set(
-                shard,
-                empty
-            );
-
-            return empty;
-
-        }
-
-
         throw new Error(
-            "Dokument-Shard HTTP " +
+            "Dokument-Shard " +
+            shard +
+            ": HTTP " +
             response.status
         );
 
@@ -717,19 +850,16 @@ async function getDocumentShard(shard) {
 
 
 /* ============================================================
-   DOKUMENT LADEN
+   DOKUMENTE LADEN
    ============================================================ */
 
 
-async function loadDocuments(ids) {
+async function loadDocuments(
+    ids
+) {
 
     const result = [];
 
-
-    /*
-     * Wir laden nicht mehr als
-     * MAX_DOCUMENTS_TO_LOAD Dokumente.
-     */
 
     const limitedIds =
         ids.slice(
@@ -739,15 +869,10 @@ async function loadDocuments(ids) {
 
 
     /*
-     * Dokument-ID → Shard.
-     *
-     * Falls der Index-Builder die Dokument-ID
-     * als SHA-256(URL) erzeugt, ist das
-     * ebenfalls der erste Hash-Bereich.
+     * Bereits bekannte Dokumente
      */
 
-
-    const groups = new Map();
+    const missingIds = [];
 
 
     for (const id of limitedIds) {
@@ -760,16 +885,35 @@ async function loadDocuments(ids) {
                 documentCache.get(id)
             );
 
-            continue;
+        } else {
+
+            missingIds.push(id);
 
         }
 
+    }
+
+
+    /*
+     * Nach Shards gruppieren
+     */
+
+    const groups =
+        new Map();
+
+
+    for (const id of missingIds) {
 
         const shard =
-            String(id).substring(0, 2);
+            String(id).substring(
+                0,
+                2
+            );
 
 
-        if (!groups.has(shard)) {
+        if (
+            !groups.has(shard)
+        ) {
 
             groups.set(
                 shard,
@@ -787,11 +931,14 @@ async function loadDocuments(ids) {
 
 
     /*
-     * Benötigte Dokument-Shards laden.
+     * Benötigte Shards laden
      */
 
     for (
-        const [shard, shardIds]
+        const [
+            shard,
+            shardIds
+        ]
         of groups
     ) {
 
@@ -818,7 +965,9 @@ async function loadDocuments(ids) {
             );
 
 
-            result.push(page);
+            result.push(
+                page
+            );
 
         }
 
@@ -832,7 +981,7 @@ async function loadDocuments(ids) {
 
 
 /* ============================================================
-   SCORE
+   VORKOMMEN
    ============================================================ */
 
 
@@ -860,8 +1009,12 @@ function countOccurrences(
             );
 
 
-        if (found === -1) {
+        if (
+            found === -1
+        ) {
+
             break;
+
         }
 
 
@@ -878,6 +1031,11 @@ function countOccurrences(
 
 }
 
+
+
+/* ============================================================
+   RELEVANZ
+   ============================================================ */
 
 
 function calculateScore(
@@ -911,7 +1069,9 @@ function calculateScore(
 
     const headings =
         normalizeText(
-            Array.isArray(page.headings)
+            Array.isArray(
+                page.headings
+            )
                 ? page.headings.join(" ")
                 : ""
         );
@@ -920,11 +1080,10 @@ function calculateScore(
     let score = 0;
 
 
-    for (const term of terms) {
-
-        /*
-         * Exakter Titel
-         */
+    for (
+        const term
+        of terms
+    ) {
 
         if (
             title === term
@@ -933,11 +1092,6 @@ function calculateScore(
             score += 100;
 
         }
-
-
-        /*
-         * Titel enthält Begriff
-         */
 
         else if (
             title.includes(term)
@@ -948,10 +1102,6 @@ function calculateScore(
         }
 
 
-        /*
-         * Überschrift
-         */
-
         if (
             headings.includes(term)
         ) {
@@ -960,10 +1110,6 @@ function calculateScore(
 
         }
 
-
-        /*
-         * URL
-         */
 
         if (
             url.includes(term)
@@ -974,10 +1120,6 @@ function calculateScore(
         }
 
 
-        /*
-         * Beschreibung
-         */
-
         if (
             description.includes(term)
         ) {
@@ -986,10 +1128,6 @@ function calculateScore(
 
         }
 
-
-        /*
-         * Text
-         */
 
         if (
             text.includes(term)
@@ -1015,10 +1153,6 @@ function calculateScore(
     }
 
 
-    /*
-     * Alle Begriffe im Titel
-     */
-
     const allInTitle =
         terms.every(
             term =>
@@ -1032,10 +1166,6 @@ function calculateScore(
 
     }
 
-
-    /*
-     * Alle Begriffe irgendwo
-     */
 
     const allInPage =
         terms.every(
@@ -1087,21 +1217,31 @@ function createSnippet(
 
 
     const normalized =
-        normalizeText(text);
+        normalizeText(
+            text
+        );
 
 
     let position = -1;
 
 
-    for (const term of terms) {
+    for (
+        const term
+        of terms
+    ) {
 
-        const p =
-            normalized.indexOf(term);
+        const found =
+            normalized.indexOf(
+                term
+            );
 
 
-        if (p !== -1) {
+        if (
+            found !== -1
+        ) {
 
-            position = p;
+            position =
+                found;
 
             break;
 
@@ -1110,26 +1250,26 @@ function createSnippet(
     }
 
 
-    /*
-     * Kein Suchbegriff im Text
-     */
+    if (
+        position === -1
+    ) {
 
-    if (position === -1) {
-
-        return text.substring(
-            0,
-            300
-        ) + (
-            text.length > 300
-                ? "…"
-                : ""
+        return (
+            text.substring(
+                0,
+                300
+            ) +
+            (
+                text.length > 300
+                    ? "…"
+                    : ""
+            )
         );
 
     }
 
 
-    const snippetLength =
-        300;
+    const snippetLength = 300;
 
 
     const start =
@@ -1153,7 +1293,9 @@ function createSnippet(
         );
 
 
-    if (start > 0) {
+    if (
+        start > 0
+    ) {
 
         snippet =
             "…" +
@@ -1178,126 +1320,21 @@ function createSnippet(
 
 
 /* ============================================================
-   INDEX LADEN
+   SUCHE
    ============================================================ */
 
 
-async function loadIndex() {
-
-    const status =
-        document.getElementById(
-            "status"
-        );
-
-
-    try {
-
-        status.textContent =
-            "Suchindex wird geladen...";
-
-
-        const response =
-            await fetch(
-                MANIFEST_FILE
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "HTTP " +
-                response.status
-            );
-
-        }
-
-
-        manifest =
-            await response.json();
-
-
-        indexLoaded = true;
-
-
-        /*
-         * Manifest kann z.B. enthalten:
-
-         {
-             "pages": 2117,
-             "terms": ...,
-             "version": ...
-         }
-         */
-
-
-        const pageCount =
-            manifest.pages ??
-            manifest.documents ??
-            manifest.total_pages ??
-            "?";
-
-
-        status.textContent =
-            pageCount +
-            " Seiten im Suchindex.";
-
-
-        console.log(
-            "TBS Search Index geladen:",
-            manifest
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Index konnte nicht geladen werden:",
-            error
-        );
-
-
-        status.textContent =
-            "Der Suchindex konnte nicht geladen werden.";
-
-
-        document.getElementById(
-            "results"
-        ).innerHTML = `
-
-            <div class="empty">
-
-                <strong>
-                    Der Suchindex konnte nicht geladen werden.
-                </strong>
-
-                <br><br>
-
-                Prüfe, ob
-                <code>data/index/manifest.json</code>
-                vorhanden ist.
-
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-
-/* ============================================================
-   SUCHEN
-   ============================================================ */
-
-
-async function search(query) {
+async function search(
+    query
+) {
 
     const terms =
         tokenize(query);
 
 
-    if (!terms.length) {
+    if (
+        !terms.length
+    ) {
 
         return [];
 
@@ -1305,14 +1342,16 @@ async function search(query) {
 
 
     /*
-     * Für jeden Begriff die Posting-Liste
-     * laden.
+     * Posting-Listen laden
      */
 
     const postingLists = [];
 
 
-    for (const term of terms) {
+    for (
+        const term
+        of terms
+    ) {
 
         const postings =
             await getPostings(
@@ -1320,12 +1359,9 @@ async function search(query) {
             );
 
 
-        /*
-         * Kein Dokument enthält
-         * diesen Begriff.
-         */
-
-        if (!postings.length) {
+        if (
+            !postings.length
+        ) {
 
             return [];
 
@@ -1340,10 +1376,7 @@ async function search(query) {
 
 
     /*
-     * Die kleinste Liste zuerst.
-     *
-     * Das macht die Schnittmengenbildung
-     * deutlich schneller.
+     * Kleinste Liste zuerst
      */
 
     postingLists.sort(
@@ -1353,14 +1386,7 @@ async function search(query) {
 
 
     /*
-     * Schnittmenge der Dokument-IDs.
-     *
-     * Dadurch müssen bei
-     *
-     * "linux tablet"
-     *
-     * nur Seiten geladen werden,
-     * die beide Begriffe enthalten.
+     * Schnittmenge
      */
 
     let ids =
@@ -1390,7 +1416,9 @@ async function search(query) {
             );
 
 
-        if (!ids.size) {
+        if (
+            !ids.size
+        ) {
 
             return [];
 
@@ -1399,28 +1427,27 @@ async function search(query) {
     }
 
 
-    const idArray =
-        [...ids];
-
-
     /*
-     * Dokumente laden.
+     * Dokumente laden
      */
 
     const pages =
         await loadDocuments(
-            idArray
+            [...ids]
         );
 
 
     /*
-     * Ranking.
+     * Ranking
      */
 
     const results = [];
 
 
-    for (const page of pages) {
+    for (
+        const page
+        of pages
+    ) {
 
         const score =
             calculateScore(
@@ -1429,13 +1456,15 @@ async function search(query) {
             );
 
 
-        if (score > 0) {
+        if (
+            score > 0
+        ) {
 
             results.push({
 
-                page: page,
+                page,
 
-                score: score
+                score
 
             });
 
@@ -1460,7 +1489,7 @@ async function search(query) {
 
 
 /* ============================================================
-   ERGEBNISSE DARSTELLEN
+   ERGEBNISSE
    ============================================================ */
 
 
@@ -1484,9 +1513,11 @@ function displayResults(
     container.innerHTML = "";
 
 
-    if (!query.trim()) {
+    if (
+        !query.trim()
+    ) {
 
-        const pageCount =
+        const count =
             manifest?.pages ??
             manifest?.documents ??
             manifest?.total_pages ??
@@ -1494,7 +1525,7 @@ function displayResults(
 
 
         status.textContent =
-            pageCount +
+            count +
             " Seiten im Suchindex.";
 
 
@@ -1510,7 +1541,9 @@ function displayResults(
         "“";
 
 
-    if (!results.length) {
+    if (
+        !results.length
+    ) {
 
         container.innerHTML = `
 
@@ -1533,7 +1566,10 @@ function displayResults(
         document.createDocumentFragment();
 
 
-    for (const result of results) {
+    for (
+        const result
+        of results
+    ) {
 
         const page =
             result.page;
@@ -1577,9 +1613,7 @@ function displayResults(
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-
                     ${escapeHTML(title)}
-
                 </a>
 
             </h2>
@@ -1621,7 +1655,7 @@ function displayResults(
 
 
 /* ============================================================
-   SUCHEN MIT LOADING-STATUS
+   SUCHE AUSFÜHREN
    ============================================================ */
 
 
@@ -1635,7 +1669,7 @@ async function performSearch(
         );
 
 
-    const resultsContainer =
+    const results =
         document.getElementById(
             "results"
         );
@@ -1647,7 +1681,11 @@ async function performSearch(
         );
 
 
-    if (!query.trim()) {
+    query =
+        query.trim();
+
+
+    if (!query) {
 
         displayResults(
             [],
@@ -1668,19 +1706,19 @@ async function performSearch(
     `;
 
 
-    resultsContainer.innerHTML = "";
+    results.innerHTML = "";
 
 
     try {
 
-        const results =
+        const found =
             await search(
                 query
             );
 
 
         displayResults(
-            results,
+            found,
             query
         );
 
@@ -1697,11 +1735,13 @@ async function performSearch(
             "Fehler bei der Suche.";
 
 
-        resultsContainer.innerHTML = `
+        results.innerHTML = `
 
             <div class="empty">
 
-                Bei der Suche ist ein Fehler aufgetreten.
+                <strong>
+                    Fehler bei der Suche
+                </strong>
 
                 <br><br>
 
@@ -1735,12 +1775,14 @@ document
     )
     .addEventListener(
         "submit",
-        event => {
+        async event => {
 
             event.preventDefault();
 
 
-            if (!indexLoaded) {
+            if (
+                !indexLoaded
+            ) {
 
                 return;
 
@@ -1756,10 +1798,6 @@ document
             const query =
                 input.value.trim();
 
-
-            /*
-             * URL aktualisieren.
-             */
 
             const url =
                 new URL(
@@ -1790,7 +1828,7 @@ document
             );
 
 
-            performSearch(
+            await performSearch(
                 query
             );
 
@@ -1800,59 +1838,110 @@ document
 
 
 /* ============================================================
-   URL-SUCHE
+   START
    ============================================================ */
 
 
-function searchFromURL() {
-
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-
-    const query =
-        params.get("q");
-
-
-    if (!query) {
-
-        return;
-
-    }
+/*
+ * WICHTIG:
+ *
+ * Nicht mehr:
+ *
+ *     loadIndex().then(searchFromURL)
+ *
+ * sondern:
+ *
+ *     await loadIndex()
+ *     await performSearch()
+ *
+ * Dadurch ist garantiert, dass der Index vollständig
+ * geladen wurde, bevor die URL-Suche startet.
+ */
 
 
-    const input =
-        document.getElementById(
-            "searchInput"
-        );
+async function start() {
+
+    try {
+
+        await loadIndex();
 
 
-    input.value =
-        query;
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
 
 
-    if (indexLoaded) {
+        const query =
+            params.get("q");
 
-        performSearch(
+
+        if (
             query
+        ) {
+
+            const input =
+                document.getElementById(
+                    "searchInput"
+                );
+
+
+            input.value =
+                query;
+
+
+            await performSearch(
+                query
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "TBS Search konnte nicht gestartet werden:",
+            error
         );
+
+
+        const status =
+            document.getElementById(
+                "status"
+            );
+
+
+        status.textContent =
+            "Suchindex konnte nicht geladen werden.";
+
+
+        document.getElementById(
+            "results"
+        ).innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    Suchindex konnte nicht geladen werden.
+                </strong>
+
+                <br><br>
+
+                <code>
+                    ${escapeHTML(
+                        error.message
+                    )}
+                </code>
+
+            </div>
+
+        `;
 
     }
 
 }
 
-
-
-/* ============================================================
-   START
-   ============================================================ */
-
-
-loadIndex().then(
-    searchFromURL
-);
+start();
 
 </script>
 
@@ -1860,3 +1949,4 @@ loadIndex().then(
 </body>
 
 </html>
+
