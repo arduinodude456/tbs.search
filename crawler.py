@@ -19,7 +19,7 @@ DATA_DIR = "data"
 PAGES_DIR = os.path.join(DATA_DIR, "pages")
 
 START_URLS = [
-    "https://tiktok.com/"
+    "https://de.wikipedia.org/"
 ]
 
 MAX_PAGES_PER_RUN = 1000
